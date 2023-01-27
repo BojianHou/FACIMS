@@ -1,0 +1,795 @@
+[2023-01-24 11:39:17][all_train.py][line:50][INFO] =============== DATA LOADING =============
+[2023-01-24 11:39:17][dataset.py][line:122][INFO] DATA LOADING...
+[2023-01-24 11:39:17][dataset.py][line:123][INFO] DATASET: toxic
+[2023-01-24 11:39:17][dataset.py][line:389][INFO] TOXIC dataset pre-processed.
+[2023-01-24 11:39:17][dataset.py][line:390][INFO] Sensitive Attribute is race, group is {'black': ['black'], 'white': ['white'], 'asian': ['asian'], 'other_race': ['latino', 'other_race_or_ethnicity']}
+[2023-01-24 11:39:17][dataset.py][line:392][INFO] Accuracy bar is 0.4
+[2023-01-24 11:39:19][dataset.py][line:324][INFO] TOXIC dataset Preprocessing ...
+[2023-01-24 11:39:19][dataset.py][line:327][INFO] ## black
+[2023-01-24 11:39:19][dataset.py][line:332][INFO] black examples num is: 15264
+[2023-01-24 11:39:19][dataset.py][line:327][INFO] ## white
+[2023-01-24 11:39:19][dataset.py][line:332][INFO] white examples num is: 26186
+[2023-01-24 11:39:19][dataset.py][line:327][INFO] ## asian
+[2023-01-24 11:39:19][dataset.py][line:332][INFO] asian examples num is: 3897
+[2023-01-24 11:39:19][dataset.py][line:327][INFO] ## other_race
+[2023-01-24 11:39:19][dataset.py][line:332][INFO] other_race examples num is: 1736
+[2023-01-24 11:39:19][dataset.py][line:343][INFO] Task Dict: {0: 'others', 1: 'black', 2: 'white', 3: 'asian', 4: 'other_race'}
+[2023-01-24 11:39:19][dataset.py][line:344][INFO] Grouped Info: 0.0    414812
+2.0     20002
+1.0      9145
+3.0      3037
+4.0      1004
+Name: new_groups, dtype: int64
+[2023-01-24 11:39:19][dataset.py][line:346][INFO] train: 
+0.0    249032
+2.0     12106
+1.0      5503
+3.0      1827
+4.0       570
+Name: new_groups, dtype: int64
+[2023-01-24 11:39:19][dataset.py][line:346][INFO] test: 
+0.0    124038
+2.0      5772
+1.0      2737
+3.0       937
+4.0       298
+Name: new_groups, dtype: int64
+[2023-01-24 11:39:19][dataset.py][line:346][INFO] val: 
+0.0    41742
+2.0     2124
+1.0      905
+3.0      273
+4.0      136
+Name: new_groups, dtype: int64
+[2023-01-24 11:39:19][dataset.py][line:352][INFO] others toxicity is 0.12841261337443968
+[2023-01-24 11:39:19][dataset.py][line:352][INFO] black toxicity is 0.32221311227962873
+[2023-01-24 11:39:19][dataset.py][line:352][INFO] white toxicity is 0.2989624080578449
+[2023-01-24 11:39:19][dataset.py][line:352][INFO] asian toxicity is 0.12338326578413271
+[2023-01-24 11:39:19][dataset.py][line:352][INFO] other_race toxicity is 0.16404498980044838
+[2023-01-24 11:39:20][dataset.py][line:367][INFO] TOXIC dataset Loaded.
+[2023-01-24 11:39:20][dataset.py][line:73][INFO] SELECTED Data Info:
+[2023-01-24 11:39:20][dataset.py][line:75][INFO] SELECTED Train Data: 269038 example with dim 768, y mean is 0.11881592934827051
+[2023-01-24 11:39:20][dataset.py][line:80][INFO] SELECTED TRAIN [USER] are 5, maximum text per user is 249032, minimum text per user is 570, average text per user is 53807.6.
+[2023-01-24 11:39:20][dataset.py][line:83][INFO] SELECTED TRAIN [LABEL] are [0 1], distribution is [237072  31966].
+[2023-01-24 11:39:20][dataset.py][line:87][INFO] SELECTED Test Data: 133782 example with dim 768, y mean is 0.1188799689046359
+[2023-01-24 11:39:20][dataset.py][line:92][INFO] SELECTED TEST [USER] are 5, maximum text per user is 124038, minimum text per user is 298, average text per user is 26756.4.
+[2023-01-24 11:39:20][dataset.py][line:95][INFO] SELECTED TEST [LABEL] are [0 1], distribution is [117878  15904].
+[2023-01-24 11:39:20][dataset.py][line:98][INFO] Added Information:
+[2023-01-24 11:39:20][dataset.py][line:99][INFO] Train Data:
+[2023-01-24 11:39:20][dataset.py][line:100][INFO] E(Y) = 0.11881592934827051
+[2023-01-24 11:39:20][dataset.py][line:101][INFO] E(Y|a) = 0.19478722504258958
+[2023-01-24 11:39:20][dataset.py][line:104][INFO] | E(Y|a)_train - E(Y|a)_train | mean = 0.08745465930035234
+[2023-01-24 11:39:20][dataset.py][line:107][INFO] Test Data:
+[2023-01-24 11:39:20][dataset.py][line:108][INFO] E(Y) = 0.1188799689046359
+[2023-01-24 11:39:20][dataset.py][line:109][INFO] E(Y|a) = 0.18627254106720093
+[2023-01-24 11:39:20][dataset.py][line:112][INFO] | E(Y|a)_test - E(Y|a)_test | mean = 0.08743982946252976
+[2023-01-24 11:39:20][all_train.py][line:91][INFO] Namespace(config='EXPS/toxic_template.yml', method='ours', dataset='toxic', sens_attrs='race', N_subtask=5, acc_bar=0.4, lower_rate=3, upper_rate=4, model_name='FcNet4', training_epoch=80, batch_size=50, max_inner=10, max_outer=5, lr_prior=0.001, lr_post=0.4, weight=0.4, divergence_type='W_Sqr', kappa_prior=0.01, kappa_post=0.001, log_var_init_mean=0.01, log_var_init_var=0.01, eps_std=0.08, n_MC=5, acc_bin=0.5, params={'n_bins': 5, 'interpolate_kind': 'linear'}, seed=0, use_wandb=False, wandb_username='YOURWANDBNAME', exp_name='toxic_race_example', train_inf_step=2, device=device(type='cpu'), log_var_init={'mean': 0.01, 'std': 0.01}, input_shape=768, output_dim=1)
+[2023-01-24 11:39:20][fair_training.py][line:298][INFO] ===============Training Process=============
+[2023-01-24 11:39:27][fair_training.py][line:316][INFO] The Initial overall accuracy is: 0.36475759070727004
+[2023-01-24 11:39:28][fair_training.py][line:95][INFO] Epoch=[1/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.7676542401313782, DIS_LOSS = 1.960587978363037, TOTAL_LOSS = 1.551889419555664
+[2023-01-24 11:39:28][fair_training.py][line:95][INFO] Epoch=[1/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 58.68522262573242, DIS_LOSS = 106.73690795898438, TOTAL_LOSS = 101.37998962402344
+[2023-01-24 11:39:28][fair_training.py][line:95][INFO] Epoch=[1/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 2.0, DIS_LOSS = 299.3604736328125, TOTAL_LOSS = 121.74419403076172
+[2023-01-24 11:39:29][fair_training.py][line:95][INFO] Epoch=[1/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.27991077303886414, DIS_LOSS = 40.31158447265625, TOTAL_LOSS = 16.404544830322266
+[2023-01-24 11:39:29][fair_training.py][line:95][INFO] Epoch=[1/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.8115159869194031, DIS_LOSS = 4.69265079498291, TOTAL_LOSS = 2.6885762214660645
+[2023-01-24 11:39:29][fair_training.py][line:134][INFO] Epoch=[1/80], Outer Loop Step=[5/5], KLD for EACH Qa: 3.9352; 20.9372; 35.8458; 4.3019; 6.9483
+[2023-01-24 11:39:29][fair_training.py][line:198][INFO] current prior optimizer lr=0.0009000000000000001
+[2023-01-24 11:39:29][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:39:29][fair_training.py][line:261][INFO] The training time for one epoch is: 2.0346741676330566 seconds
+[2023-01-24 11:39:36][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [0] is: 0.5733880492143936
+[2023-01-24 11:39:36][fair_training.py][line:95][INFO] Epoch=[2/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.4421742260456085, DIS_LOSS = 1.685415267944336, TOTAL_LOSS = 1.1163403987884521
+[2023-01-24 11:39:36][fair_training.py][line:95][INFO] Epoch=[2/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 68.0751953125, DIS_LOSS = 28.275054931640625, TOTAL_LOSS = 79.38521575927734
+[2023-01-24 11:39:37][fair_training.py][line:95][INFO] Epoch=[2/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 27.102705001831055, DIS_LOSS = 1080.3765869140625, TOTAL_LOSS = 459.2533264160156
+[2023-01-24 11:39:37][fair_training.py][line:95][INFO] Epoch=[2/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.4007270336151123, DIS_LOSS = 2.733402967453003, TOTAL_LOSS = 1.4940882921218872
+[2023-01-24 11:39:37][fair_training.py][line:95][INFO] Epoch=[2/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.34623968601226807, DIS_LOSS = 9.794599533081055, TOTAL_LOSS = 4.264079570770264
+[2023-01-24 11:39:38][fair_training.py][line:134][INFO] Epoch=[2/80], Outer Loop Step=[5/5], KLD for EACH Qa: 2.7376; 7.975; 78.295; 2.3738; 7.4433
+[2023-01-24 11:39:38][fair_training.py][line:198][INFO] current prior optimizer lr=0.0008100000000000001
+[2023-01-24 11:39:38][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:39:38][fair_training.py][line:95][INFO] Epoch=[3/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.23276954889297485, DIS_LOSS = 4.561291694641113, TOTAL_LOSS = 2.057286262512207
+[2023-01-24 11:39:38][fair_training.py][line:95][INFO] Epoch=[3/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.8167770504951477, DIS_LOSS = 10.011223793029785, TOTAL_LOSS = 4.8212666511535645
+[2023-01-24 11:39:39][fair_training.py][line:95][INFO] Epoch=[3/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 1.2263338565826416, DIS_LOSS = 36.497779846191406, TOTAL_LOSS = 15.825446128845215
+[2023-01-24 11:39:39][fair_training.py][line:95][INFO] Epoch=[3/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.03756390139460564, DIS_LOSS = 2.391496419906616, TOTAL_LOSS = 0.9941624999046326
+[2023-01-24 11:39:39][fair_training.py][line:95][INFO] Epoch=[3/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.8246150016784668, DIS_LOSS = 11.861170768737793, TOTAL_LOSS = 5.569083213806152
+[2023-01-24 11:39:40][fair_training.py][line:134][INFO] Epoch=[3/80], Outer Loop Step=[5/5], KLD for EACH Qa: 2.4689; 6.2697; 10.9521; 1.3572; 12.2704
+[2023-01-24 11:39:40][fair_training.py][line:198][INFO] current prior optimizer lr=0.000729
+[2023-01-24 11:39:40][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:39:40][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9665379524230957 seconds
+[2023-01-24 11:39:46][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [2] is: 0.8089578568118282
+[2023-01-24 11:39:47][fair_training.py][line:95][INFO] Epoch=[4/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.578359842300415, DIS_LOSS = 1.886244773864746, TOTAL_LOSS = 1.3328578472137451
+[2023-01-24 11:39:47][fair_training.py][line:95][INFO] Epoch=[4/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.025544235482811928, DIS_LOSS = 2.772050380706787, TOTAL_LOSS = 1.1343644857406616
+[2023-01-24 11:39:47][fair_training.py][line:95][INFO] Epoch=[4/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.30149945616722107, DIS_LOSS = 1.443507194519043, TOTAL_LOSS = 0.8789023160934448
+[2023-01-24 11:39:48][fair_training.py][line:95][INFO] Epoch=[4/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.33876466751098633, DIS_LOSS = 2.8714871406555176, TOTAL_LOSS = 1.4873595237731934
+[2023-01-24 11:39:48][fair_training.py][line:95][INFO] Epoch=[4/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.19911861419677734, DIS_LOSS = 2.678123950958252, TOTAL_LOSS = 1.270368218421936
+[2023-01-24 11:39:48][fair_training.py][line:134][INFO] Epoch=[4/80], Outer Loop Step=[5/5], KLD for EACH Qa: 2.9443; 1.1615; 1.7041; 1.6236; 1.3883
+[2023-01-24 11:39:48][fair_training.py][line:198][INFO] current prior optimizer lr=0.0006561000000000001
+[2023-01-24 11:39:48][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:39:49][fair_training.py][line:95][INFO] Epoch=[5/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.13723069429397583, DIS_LOSS = 1.5057498216629028, TOTAL_LOSS = 0.739530622959137
+[2023-01-24 11:39:49][fair_training.py][line:95][INFO] Epoch=[5/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.07836589217185974, DIS_LOSS = 1.9725666046142578, TOTAL_LOSS = 0.8673925399780273
+[2023-01-24 11:39:49][fair_training.py][line:95][INFO] Epoch=[5/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.2613719403743744, DIS_LOSS = 1.2296319007873535, TOTAL_LOSS = 0.7532247304916382
+[2023-01-24 11:39:50][fair_training.py][line:95][INFO] Epoch=[5/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.02125210128724575, DIS_LOSS = 2.006009578704834, TOTAL_LOSS = 0.8236559629440308
+[2023-01-24 11:39:50][fair_training.py][line:95][INFO] Epoch=[5/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.24999627470970154, DIS_LOSS = 2.387315034866333, TOTAL_LOSS = 1.2049223184585571
+[2023-01-24 11:39:50][fair_training.py][line:134][INFO] Epoch=[5/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.7667; 1.1214; 1.5213; 1.141; 1.4485
+[2023-01-24 11:39:50][fair_training.py][line:198][INFO] current prior optimizer lr=0.00059049
+[2023-01-24 11:39:50][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:39:50][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9980289936065674 seconds
+[2023-01-24 11:39:57][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [4] is: 0.8983645034459046
+[2023-01-24 11:39:57][fair_training.py][line:95][INFO] Epoch=[6/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.4207947254180908, DIS_LOSS = 1.462678074836731, TOTAL_LOSS = 1.0058660507202148
+[2023-01-24 11:39:58][fair_training.py][line:95][INFO] Epoch=[6/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.1480383425951004, DIS_LOSS = 1.9743832349777222, TOTAL_LOSS = 0.937791645526886
+[2023-01-24 11:39:58][fair_training.py][line:95][INFO] Epoch=[6/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.2521701455116272, DIS_LOSS = 1.2142572402954102, TOTAL_LOSS = 0.7378730773925781
+[2023-01-24 11:39:58][fair_training.py][line:95][INFO] Epoch=[6/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.021698299795389175, DIS_LOSS = 2.004643440246582, TOTAL_LOSS = 0.8235557079315186
+[2023-01-24 11:39:59][fair_training.py][line:95][INFO] Epoch=[6/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.075141541659832, DIS_LOSS = 1.6879174709320068, TOTAL_LOSS = 0.7503085732460022
+[2023-01-24 11:39:59][fair_training.py][line:134][INFO] Epoch=[6/80], Outer Loop Step=[5/5], KLD for EACH Qa: 2.5137; 1.1492; 1.4777; 1.1564; 1.1481
+[2023-01-24 11:39:59][fair_training.py][line:198][INFO] current prior optimizer lr=0.000531441
+[2023-01-24 11:39:59][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:39:59][fair_training.py][line:95][INFO] Epoch=[7/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.1224260926246643, DIS_LOSS = 1.1841267347335815, TOTAL_LOSS = 0.5960767865180969
+[2023-01-24 11:40:00][fair_training.py][line:95][INFO] Epoch=[7/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.08637325465679169, DIS_LOSS = 1.3717787265777588, TOTAL_LOSS = 0.6350847482681274
+[2023-01-24 11:40:00][fair_training.py][line:95][INFO] Epoch=[7/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.3039819002151489, DIS_LOSS = 1.3008705377578735, TOTAL_LOSS = 0.8243301510810852
+[2023-01-24 11:40:00][fair_training.py][line:95][INFO] Epoch=[7/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.3554604649543762, DIS_LOSS = 2.2831897735595703, TOTAL_LOSS = 1.2687363624572754
+[2023-01-24 11:40:01][fair_training.py][line:95][INFO] Epoch=[7/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.1866418868303299, DIS_LOSS = 2.25230073928833, TOTAL_LOSS = 1.0875622034072876
+[2023-01-24 11:40:01][fair_training.py][line:134][INFO] Epoch=[7/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.471; 1.1921; 1.5859; 1.5744; 1.3696
+[2023-01-24 11:40:01][fair_training.py][line:198][INFO] current prior optimizer lr=0.0004782969
+[2023-01-24 11:40:01][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:01][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9865069389343262 seconds
+[2023-01-24 11:40:08][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [6] is: 0.9148390665410893
+[2023-01-24 11:40:08][fair_training.py][line:95][INFO] Epoch=[8/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.33043038845062256, DIS_LOSS = 1.380699634552002, TOTAL_LOSS = 0.8827102780342102
+[2023-01-24 11:40:08][fair_training.py][line:95][INFO] Epoch=[8/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.14308010041713715, DIS_LOSS = 2.1504721641540527, TOTAL_LOSS = 1.0032689571380615
+[2023-01-24 11:40:09][fair_training.py][line:95][INFO] Epoch=[8/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.23031632602214813, DIS_LOSS = 1.1853679418563843, TOTAL_LOSS = 0.7044634819030762
+[2023-01-24 11:40:09][fair_training.py][line:95][INFO] Epoch=[8/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.031074466183781624, DIS_LOSS = 1.5212304592132568, TOTAL_LOSS = 0.6395666599273682
+[2023-01-24 11:40:09][fair_training.py][line:95][INFO] Epoch=[8/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.41156846284866333, DIS_LOSS = 1.9844504594802856, TOTAL_LOSS = 1.2053487300872803
+[2023-01-24 11:40:10][fair_training.py][line:134][INFO] Epoch=[8/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.9677; 1.1764; 1.4678; 1.1454; 1.5344
+[2023-01-24 11:40:10][fair_training.py][line:198][INFO] current prior optimizer lr=0.00043046721
+[2023-01-24 11:40:10][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:10][fair_training.py][line:95][INFO] Epoch=[9/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.07768425345420837, DIS_LOSS = 1.1936956644058228, TOTAL_LOSS = 0.5551625490188599
+[2023-01-24 11:40:10][fair_training.py][line:95][INFO] Epoch=[9/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.02160169743001461, DIS_LOSS = 1.4714642763137817, TOTAL_LOSS = 0.6101874113082886
+[2023-01-24 11:40:11][fair_training.py][line:95][INFO] Epoch=[9/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.08164799213409424, DIS_LOSS = 1.1999728679656982, TOTAL_LOSS = 0.5616371631622314
+[2023-01-24 11:40:11][fair_training.py][line:95][INFO] Epoch=[9/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.021488023921847343, DIS_LOSS = 1.4928051233291626, TOTAL_LOSS = 0.6186100840568542
+[2023-01-24 11:40:11][fair_training.py][line:95][INFO] Epoch=[9/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.38619691133499146, DIS_LOSS = 2.1018588542938232, TOTAL_LOSS = 1.226940393447876
+[2023-01-24 11:40:12][fair_training.py][line:134][INFO] Epoch=[9/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.2555; 1.1273; 1.193; 1.1411; 1.4716
+[2023-01-24 11:40:12][fair_training.py][line:198][INFO] current prior optimizer lr=0.000387420489
+[2023-01-24 11:40:12][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:12][fair_training.py][line:261][INFO] The training time for one epoch is: 2.004053831100464 seconds
+[2023-01-24 11:40:19][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [8] is: 0.9171487943071565
+[2023-01-24 11:40:19][fair_training.py][line:95][INFO] Epoch=[10/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.00890031736344099, DIS_LOSS = 1.503257155418396, TOTAL_LOSS = 0.610203206539154
+[2023-01-24 11:40:19][fair_training.py][line:95][INFO] Epoch=[10/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.05845930427312851, DIS_LOSS = 1.3955971002578735, TOTAL_LOSS = 0.616698145866394
+[2023-01-24 11:40:20][fair_training.py][line:95][INFO] Epoch=[10/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.5210641622543335, DIS_LOSS = 1.496281623840332, TOTAL_LOSS = 1.1195768117904663
+[2023-01-24 11:40:20][fair_training.py][line:95][INFO] Epoch=[10/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.06592004001140594, DIS_LOSS = 1.45658540725708, TOTAL_LOSS = 0.6485542058944702
+[2023-01-24 11:40:20][fair_training.py][line:95][INFO] Epoch=[10/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.24881595373153687, DIS_LOSS = 2.1500344276428223, TOTAL_LOSS = 1.1088297367095947
+[2023-01-24 11:40:21][fair_training.py][line:134][INFO] Epoch=[10/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1185; 1.1518; 1.8407; 1.1486; 1.5526
+[2023-01-24 11:40:21][fair_training.py][line:198][INFO] current prior optimizer lr=0.0003486784401
+[2023-01-24 11:40:21][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:21][fair_training.py][line:95][INFO] Epoch=[11/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.0034024768974632025, DIS_LOSS = 1.4460217952728271, TOTAL_LOSS = 0.5818111896514893
+[2023-01-24 11:40:21][fair_training.py][line:95][INFO] Epoch=[11/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.05428742244839668, DIS_LOSS = 1.3880741596221924, TOTAL_LOSS = 0.6095170974731445
+[2023-01-24 11:40:22][fair_training.py][line:95][INFO] Epoch=[11/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.20352277159690857, DIS_LOSS = 1.2435650825500488, TOTAL_LOSS = 0.7009488344192505
+[2023-01-24 11:40:22][fair_training.py][line:95][INFO] Epoch=[11/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.11121829599142075, DIS_LOSS = 1.7691667079925537, TOTAL_LOSS = 0.8188849687576294
+[2023-01-24 11:40:22][fair_training.py][line:95][INFO] Epoch=[11/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.02515421062707901, DIS_LOSS = 1.331109642982483, TOTAL_LOSS = 0.5575981140136719
+[2023-01-24 11:40:23][fair_training.py][line:134][INFO] Epoch=[11/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1168; 1.1643; 1.4406; 1.2412; 1.139
+[2023-01-24 11:40:23][fair_training.py][line:198][INFO] current prior optimizer lr=0.00031381059609000004
+[2023-01-24 11:40:23][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:23][fair_training.py][line:261][INFO] The training time for one epoch is: 2.122338056564331 seconds
+[2023-01-24 11:40:29][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [10] is: 0.9179336532567909
+[2023-01-24 11:40:30][fair_training.py][line:95][INFO] Epoch=[12/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.01532265916466713, DIS_LOSS = 1.406975269317627, TOTAL_LOSS = 0.578112781047821
+[2023-01-24 11:40:30][fair_training.py][line:95][INFO] Epoch=[12/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.03872555121779442, DIS_LOSS = 1.3385194540023804, TOTAL_LOSS = 0.5741333365440369
+[2023-01-24 11:40:30][fair_training.py][line:95][INFO] Epoch=[12/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.16363200545310974, DIS_LOSS = 1.1569231748580933, TOTAL_LOSS = 0.6264013051986694
+[2023-01-24 11:40:31][fair_training.py][line:95][INFO] Epoch=[12/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.07672347873449326, DIS_LOSS = 1.75570809841156, TOTAL_LOSS = 0.7790067195892334
+[2023-01-24 11:40:31][fair_training.py][line:95][INFO] Epoch=[12/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.10259605944156647, DIS_LOSS = 1.312119722366333, TOTAL_LOSS = 0.6274439692497253
+[2023-01-24 11:40:31][fair_training.py][line:134][INFO] Epoch=[12/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1246; 1.1541; 1.2444; 1.2243; 1.1419
+[2023-01-24 11:40:31][fair_training.py][line:198][INFO] current prior optimizer lr=0.00028242953648100003
+[2023-01-24 11:40:31][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:32][fair_training.py][line:95][INFO] Epoch=[13/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.010227654129266739, DIS_LOSS = 1.3563506603240967, TOTAL_LOSS = 0.5527679324150085
+[2023-01-24 11:40:32][fair_training.py][line:95][INFO] Epoch=[13/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.03584891930222511, DIS_LOSS = 1.349420428276062, TOTAL_LOSS = 0.5756170749664307
+[2023-01-24 11:40:32][fair_training.py][line:95][INFO] Epoch=[13/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.22016920149326324, DIS_LOSS = 1.1538141965866089, TOTAL_LOSS = 0.6816948652267456
+[2023-01-24 11:40:33][fair_training.py][line:95][INFO] Epoch=[13/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.23441219329833984, DIS_LOSS = 1.9111473560333252, TOTAL_LOSS = 0.9988711476325989
+[2023-01-24 11:40:33][fair_training.py][line:95][INFO] Epoch=[13/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.014879876747727394, DIS_LOSS = 1.304459571838379, TOTAL_LOSS = 0.5366637110710144
+[2023-01-24 11:40:34][fair_training.py][line:134][INFO] Epoch=[13/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1239; 1.1468; 1.371; 1.4198; 1.1295
+[2023-01-24 11:40:34][fair_training.py][line:198][INFO] current prior optimizer lr=0.00025418658283290005
+[2023-01-24 11:40:34][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:34][fair_training.py][line:261][INFO] The training time for one epoch is: 2.047455072402954 seconds
+[2023-01-24 11:40:40][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [12] is: 0.9182102226009478
+[2023-01-24 11:40:40][fair_training.py][line:95][INFO] Epoch=[14/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.015398328192532063, DIS_LOSS = 1.3418054580688477, TOTAL_LOSS = 0.5521205067634583
+[2023-01-24 11:40:41][fair_training.py][line:95][INFO] Epoch=[14/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.16777785122394562, DIS_LOSS = 1.213562250137329, TOTAL_LOSS = 0.6532027721405029
+[2023-01-24 11:40:41][fair_training.py][line:95][INFO] Epoch=[14/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.3166782259941101, DIS_LOSS = 1.1845765113830566, TOTAL_LOSS = 0.7905088663101196
+[2023-01-24 11:40:41][fair_training.py][line:95][INFO] Epoch=[14/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.07818330079317093, DIS_LOSS = 1.6223663091659546, TOTAL_LOSS = 0.7271298170089722
+[2023-01-24 11:40:42][fair_training.py][line:95][INFO] Epoch=[14/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.22596469521522522, DIS_LOSS = 1.8840912580490112, TOTAL_LOSS = 0.979601263999939
+[2023-01-24 11:40:42][fair_training.py][line:134][INFO] Epoch=[14/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1331; 1.2751; 1.4293; 1.2001; 1.292
+[2023-01-24 11:40:42][fair_training.py][line:198][INFO] current prior optimizer lr=0.00022876792454961005
+[2023-01-24 11:40:42][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:42][fair_training.py][line:95][INFO] Epoch=[15/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.2602260410785675, DIS_LOSS = 2.052557945251465, TOTAL_LOSS = 1.0812492370605469
+[2023-01-24 11:40:43][fair_training.py][line:95][INFO] Epoch=[15/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.28152117133140564, DIS_LOSS = 1.207095980644226, TOTAL_LOSS = 0.7643595933914185
+[2023-01-24 11:40:43][fair_training.py][line:95][INFO] Epoch=[15/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.35696014761924744, DIS_LOSS = 1.3240282535552979, TOTAL_LOSS = 0.8865714073181152
+[2023-01-24 11:40:43][fair_training.py][line:95][INFO] Epoch=[15/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.028274236246943474, DIS_LOSS = 1.2379368543624878, TOTAL_LOSS = 0.5234489440917969
+[2023-01-24 11:40:44][fair_training.py][line:95][INFO] Epoch=[15/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.1890685111284256, DIS_LOSS = 1.9788109064102173, TOTAL_LOSS = 0.9805928468704224
+[2023-01-24 11:40:44][fair_training.py][line:134][INFO] Epoch=[15/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.3682; 1.7039; 1.5507; 1.1485; 1.2624
+[2023-01-24 11:40:44][fair_training.py][line:198][INFO] current prior optimizer lr=0.00020589113209464906
+[2023-01-24 11:40:44][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:44][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9812121391296387 seconds
+[2023-01-24 11:40:51][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [14] is: 0.9186437637350316
+[2023-01-24 11:40:51][fair_training.py][line:95][INFO] Epoch=[16/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.02382585220038891, DIS_LOSS = 1.2762463092803955, TOTAL_LOSS = 0.5343243479728699
+[2023-01-24 11:40:51][fair_training.py][line:95][INFO] Epoch=[16/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.08343882858753204, DIS_LOSS = 1.2039258480072021, TOTAL_LOSS = 0.5650091767311096
+[2023-01-24 11:40:52][fair_training.py][line:95][INFO] Epoch=[16/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.12731927633285522, DIS_LOSS = 1.1637792587280273, TOTAL_LOSS = 0.592831015586853
+[2023-01-24 11:40:52][fair_training.py][line:95][INFO] Epoch=[16/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.01868874952197075, DIS_LOSS = 1.2345952987670898, TOTAL_LOSS = 0.5125268697738647
+[2023-01-24 11:40:52][fair_training.py][line:95][INFO] Epoch=[16/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.12036467343568802, DIS_LOSS = 1.3017934560775757, TOTAL_LOSS = 0.6410820484161377
+[2023-01-24 11:40:53][fair_training.py][line:134][INFO] Epoch=[16/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1485; 1.2627; 1.1899; 1.1371; 1.1629
+[2023-01-24 11:40:53][fair_training.py][line:198][INFO] current prior optimizer lr=0.00018530201888518417
+[2023-01-24 11:40:53][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:53][fair_training.py][line:95][INFO] Epoch=[17/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.22471953928470612, DIS_LOSS = 1.8921617269515991, TOTAL_LOSS = 0.9815842509269714
+[2023-01-24 11:40:53][fair_training.py][line:95][INFO] Epoch=[17/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.23575182259082794, DIS_LOSS = 1.2065792083740234, TOTAL_LOSS = 0.7183834910392761
+[2023-01-24 11:40:54][fair_training.py][line:95][INFO] Epoch=[17/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.19877268373966217, DIS_LOSS = 1.173174262046814, TOTAL_LOSS = 0.6680424213409424
+[2023-01-24 11:40:54][fair_training.py][line:95][INFO] Epoch=[17/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.020991411060094833, DIS_LOSS = 1.229934811592102, TOTAL_LOSS = 0.5129653215408325
+[2023-01-24 11:40:54][fair_training.py][line:95][INFO] Epoch=[17/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.08027193695306778, DIS_LOSS = 1.4486989974975586, TOTAL_LOSS = 0.6597515940666199
+[2023-01-24 11:40:55][fair_training.py][line:134][INFO] Epoch=[17/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.35; 1.5361; 1.2332; 1.1453; 1.1794
+[2023-01-24 11:40:55][fair_training.py][line:198][INFO] current prior optimizer lr=0.00016677181699666576
+[2023-01-24 11:40:55][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:40:55][fair_training.py][line:261][INFO] The training time for one epoch is: 1.975567102432251 seconds
+[2023-01-24 11:41:01][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [16] is: 0.9189203330791885
+[2023-01-24 11:41:02][fair_training.py][line:95][INFO] Epoch=[18/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.012214398011565208, DIS_LOSS = 1.2213252782821655, TOTAL_LOSS = 0.5007445216178894
+[2023-01-24 11:41:02][fair_training.py][line:95][INFO] Epoch=[18/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.19947576522827148, DIS_LOSS = 1.1620802879333496, TOTAL_LOSS = 0.6643078923225403
+[2023-01-24 11:41:02][fair_training.py][line:95][INFO] Epoch=[18/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.0720793679356575, DIS_LOSS = 1.1524226665496826, TOTAL_LOSS = 0.5330484509468079
+[2023-01-24 11:41:03][fair_training.py][line:95][INFO] Epoch=[18/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.24025095999240875, DIS_LOSS = 1.301974892616272, TOTAL_LOSS = 0.7610409259796143
+[2023-01-24 11:41:03][fair_training.py][line:95][INFO] Epoch=[18/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.5788041949272156, DIS_LOSS = 1.8531198501586914, TOTAL_LOSS = 1.320052146911621
+[2023-01-24 11:41:03][fair_training.py][line:134][INFO] Epoch=[18/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1312; 1.359; 1.2112; 1.8874; 1.818
+[2023-01-24 11:41:03][fair_training.py][line:198][INFO] current prior optimizer lr=0.0001500946352969992
+[2023-01-24 11:41:03][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:04][fair_training.py][line:95][INFO] Epoch=[19/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.027174681425094604, DIS_LOSS = 1.2362632751464844, TOTAL_LOSS = 0.5216799974441528
+[2023-01-24 11:41:04][fair_training.py][line:95][INFO] Epoch=[19/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.43806540966033936, DIS_LOSS = 1.377115249633789, TOTAL_LOSS = 0.988911509513855
+[2023-01-24 11:41:04][fair_training.py][line:95][INFO] Epoch=[19/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.08766963332891464, DIS_LOSS = 1.203020691871643, TOTAL_LOSS = 0.5688779354095459
+[2023-01-24 11:41:05][fair_training.py][line:95][INFO] Epoch=[19/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.050172749906778336, DIS_LOSS = 1.1674257516860962, TOTAL_LOSS = 0.5171430706977844
+[2023-01-24 11:41:05][fair_training.py][line:95][INFO] Epoch=[19/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.2528151571750641, DIS_LOSS = 1.2898035049438477, TOTAL_LOSS = 0.7687366008758545
+[2023-01-24 11:41:05][fair_training.py][line:134][INFO] Epoch=[19/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1576; 1.6939; 1.1717; 1.2372; 1.6183
+[2023-01-24 11:41:05][fair_training.py][line:198][INFO] current prior optimizer lr=0.0001350851717672993
+[2023-01-24 11:41:05][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:05][fair_training.py][line:261][INFO] The training time for one epoch is: 2.019897937774658 seconds
+[2023-01-24 11:41:12][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [18] is: 0.919010031244861
+[2023-01-24 11:41:12][fair_training.py][line:95][INFO] Epoch=[20/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.018845831975340843, DIS_LOSS = 1.2481215000152588, TOTAL_LOSS = 0.5180944204330444
+[2023-01-24 11:41:13][fair_training.py][line:95][INFO] Epoch=[20/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.07783998548984528, DIS_LOSS = 1.1700482368469238, TOTAL_LOSS = 0.5458592772483826
+[2023-01-24 11:41:13][fair_training.py][line:95][INFO] Epoch=[20/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.4543627202510834, DIS_LOSS = 1.389555811882019, TOTAL_LOSS = 1.0101850032806396
+[2023-01-24 11:41:13][fair_training.py][line:95][INFO] Epoch=[20/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.037765976041555405, DIS_LOSS = 1.1629523038864136, TOTAL_LOSS = 0.5029469132423401
+[2023-01-24 11:41:14][fair_training.py][line:95][INFO] Epoch=[20/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.035339705646038055, DIS_LOSS = 1.182698130607605, TOTAL_LOSS = 0.5084189772605896
+[2023-01-24 11:41:14][fair_training.py][line:134][INFO] Epoch=[20/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.143; 1.2442; 1.6881; 1.196; 1.1785
+[2023-01-24 11:41:14][fair_training.py][line:198][INFO] current prior optimizer lr=0.00012157665459056936
+[2023-01-24 11:41:14][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:15][fair_training.py][line:95][INFO] Epoch=[21/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.2743043899536133, DIS_LOSS = 1.410299301147461, TOTAL_LOSS = 0.8384241461753845
+[2023-01-24 11:41:15][fair_training.py][line:95][INFO] Epoch=[21/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.20186276733875275, DIS_LOSS = 1.1958991289138794, TOTAL_LOSS = 0.6802224516868591
+[2023-01-24 11:41:15][fair_training.py][line:95][INFO] Epoch=[21/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.14957928657531738, DIS_LOSS = 1.1469260454177856, TOTAL_LOSS = 0.6083496809005737
+[2023-01-24 11:41:16][fair_training.py][line:95][INFO] Epoch=[21/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.2022227644920349, DIS_LOSS = 1.2541638612747192, TOTAL_LOSS = 0.7038882970809937
+[2023-01-24 11:41:16][fair_training.py][line:95][INFO] Epoch=[21/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.20155465602874756, DIS_LOSS = 1.2738854885101318, TOTAL_LOSS = 0.7111088633537292
+[2023-01-24 11:41:16][fair_training.py][line:134][INFO] Epoch=[21/80], Outer Loop Step=[5/5], KLD for EACH Qa: 2.0007; 1.3829; 1.1954; 1.7525; 1.6272
+[2023-01-24 11:41:16][fair_training.py][line:198][INFO] current prior optimizer lr=0.00010941898913151243
+[2023-01-24 11:41:16][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:16][fair_training.py][line:261][INFO] The training time for one epoch is: 2.1350910663604736 seconds
+[2023-01-24 11:41:23][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [20] is: 0.9194286226846661
+[2023-01-24 11:41:24][fair_training.py][line:95][INFO] Epoch=[22/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.045045312494039536, DIS_LOSS = 1.1535258293151855, TOTAL_LOSS = 0.506455659866333
+[2023-01-24 11:41:24][fair_training.py][line:95][INFO] Epoch=[22/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.1361020803451538, DIS_LOSS = 1.1857683658599854, TOTAL_LOSS = 0.6104094386100769
+[2023-01-24 11:41:24][fair_training.py][line:95][INFO] Epoch=[22/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.2178625911474228, DIS_LOSS = 1.1626113653182983, TOTAL_LOSS = 0.6829071640968323
+[2023-01-24 11:41:25][fair_training.py][line:95][INFO] Epoch=[22/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.03444092348217964, DIS_LOSS = 1.153746485710144, TOTAL_LOSS = 0.4959395229816437
+[2023-01-24 11:41:25][fair_training.py][line:95][INFO] Epoch=[22/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.20447205007076263, DIS_LOSS = 1.260278582572937, TOTAL_LOSS = 0.7085835337638855
+[2023-01-24 11:41:25][fair_training.py][line:134][INFO] Epoch=[22/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.2077; 1.2161; 1.2346; 1.1859; 1.464
+[2023-01-24 11:41:25][fair_training.py][line:198][INFO] current prior optimizer lr=9.847709021836118e-05
+[2023-01-24 11:41:25][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:26][fair_training.py][line:95][INFO] Epoch=[23/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.013904559426009655, DIS_LOSS = 1.2123404741287231, TOTAL_LOSS = 0.4988407790660858
+[2023-01-24 11:41:26][fair_training.py][line:95][INFO] Epoch=[23/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.10566026717424393, DIS_LOSS = 1.1814247369766235, TOTAL_LOSS = 0.5782302021980286
+[2023-01-24 11:41:26][fair_training.py][line:95][INFO] Epoch=[23/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.02802521176636219, DIS_LOSS = 1.15615975856781, TOTAL_LOSS = 0.49048912525177
+[2023-01-24 11:41:27][fair_training.py][line:95][INFO] Epoch=[23/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.03554064407944679, DIS_LOSS = 1.1516557931900024, TOTAL_LOSS = 0.4962029755115509
+[2023-01-24 11:41:27][fair_training.py][line:95][INFO] Epoch=[23/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.25530001521110535, DIS_LOSS = 1.3540602922439575, TOTAL_LOSS = 0.7969241142272949
+[2023-01-24 11:41:27][fair_training.py][line:134][INFO] Epoch=[23/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1403; 1.1786; 1.1302; 1.196; 1.5143
+[2023-01-24 11:41:27][fair_training.py][line:198][INFO] current prior optimizer lr=8.862938119652506e-05
+[2023-01-24 11:41:27][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:27][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9629900455474854 seconds
+[2023-01-24 11:41:34][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [22] is: 0.9192043772704849
+[2023-01-24 11:41:34][fair_training.py][line:95][INFO] Epoch=[24/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.502561092376709, DIS_LOSS = 1.8456767797470093, TOTAL_LOSS = 1.2408318519592285
+[2023-01-24 11:41:34][fair_training.py][line:95][INFO] Epoch=[24/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.08256081491708755, DIS_LOSS = 1.2052792310714722, TOTAL_LOSS = 0.5646725296974182
+[2023-01-24 11:41:35][fair_training.py][line:95][INFO] Epoch=[24/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.09011609852313995, DIS_LOSS = 1.1821273565292358, TOTAL_LOSS = 0.56296706199646
+[2023-01-24 11:41:35][fair_training.py][line:95][INFO] Epoch=[24/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.04046068713068962, DIS_LOSS = 1.1567614078521729, TOTAL_LOSS = 0.5031652450561523
+[2023-01-24 11:41:35][fair_training.py][line:95][INFO] Epoch=[24/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.042825691401958466, DIS_LOSS = 1.1547726392745972, TOTAL_LOSS = 0.5047347545623779
+[2023-01-24 11:41:36][fair_training.py][line:134][INFO] Epoch=[24/80], Outer Loop Step=[5/5], KLD for EACH Qa: 2.1255; 1.2127; 1.1254; 1.2057; 1.2116
+[2023-01-24 11:41:36][fair_training.py][line:198][INFO] current prior optimizer lr=7.976644307687256e-05
+[2023-01-24 11:41:36][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:36][fair_training.py][line:95][INFO] Epoch=[25/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.036241523921489716, DIS_LOSS = 1.1674598455429077, TOTAL_LOSS = 0.5032254457473755
+[2023-01-24 11:41:36][fair_training.py][line:95][INFO] Epoch=[25/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.17981171607971191, DIS_LOSS = 1.2032114267349243, TOTAL_LOSS = 0.6610963344573975
+[2023-01-24 11:41:37][fair_training.py][line:95][INFO] Epoch=[25/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.03306116163730621, DIS_LOSS = 1.171624779701233, TOTAL_LOSS = 0.5017110705375671
+[2023-01-24 11:41:37][fair_training.py][line:95][INFO] Epoch=[25/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.03601916506886482, DIS_LOSS = 1.1465424299240112, TOTAL_LOSS = 0.4946361482143402
+[2023-01-24 11:41:37][fair_training.py][line:95][INFO] Epoch=[25/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.19108723104000092, DIS_LOSS = 1.2450004816055298, TOTAL_LOSS = 0.689087450504303
+[2023-01-24 11:41:38][fair_training.py][line:134][INFO] Epoch=[25/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1854; 1.3742; 1.1316; 1.1961; 1.5129
+[2023-01-24 11:41:38][fair_training.py][line:198][INFO] current prior optimizer lr=7.17897987691853e-05
+[2023-01-24 11:41:38][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:38][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9673211574554443 seconds
+[2023-01-24 11:41:44][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [24] is: 0.9193463993661329
+[2023-01-24 11:41:45][fair_training.py][line:95][INFO] Epoch=[26/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.04052441194653511, DIS_LOSS = 1.179696798324585, TOTAL_LOSS = 0.512403130531311
+[2023-01-24 11:41:45][fair_training.py][line:95][INFO] Epoch=[26/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.32761484384536743, DIS_LOSS = 1.390769600868225, TOTAL_LOSS = 0.8839226961135864
+[2023-01-24 11:41:45][fair_training.py][line:95][INFO] Epoch=[26/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.045262645930051804, DIS_LOSS = 1.159271001815796, TOTAL_LOSS = 0.5089710354804993
+[2023-01-24 11:41:46][fair_training.py][line:95][INFO] Epoch=[26/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.09662993252277374, DIS_LOSS = 1.1749696731567383, TOTAL_LOSS = 0.5666177868843079
+[2023-01-24 11:41:46][fair_training.py][line:95][INFO] Epoch=[26/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.07604736089706421, DIS_LOSS = 1.1830837726593018, TOTAL_LOSS = 0.5492808818817139
+[2023-01-24 11:41:46][fair_training.py][line:134][INFO] Epoch=[26/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.188; 1.6372; 1.1502; 1.3488; 1.2485
+[2023-01-24 11:41:46][fair_training.py][line:198][INFO] current prior optimizer lr=6.461081889226677e-05
+[2023-01-24 11:41:46][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:47][fair_training.py][line:95][INFO] Epoch=[27/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.014962287619709969, DIS_LOSS = 1.1713764667510986, TOTAL_LOSS = 0.48351287841796875
+[2023-01-24 11:41:47][fair_training.py][line:95][INFO] Epoch=[27/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.33188995718955994, DIS_LOSS = 1.2853673696517944, TOTAL_LOSS = 0.8460369110107422
+[2023-01-24 11:41:47][fair_training.py][line:95][INFO] Epoch=[27/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.0283014215528965, DIS_LOSS = 1.1697009801864624, TOTAL_LOSS = 0.49618181586265564
+[2023-01-24 11:41:48][fair_training.py][line:95][INFO] Epoch=[27/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.018275583162903786, DIS_LOSS = 1.174721598625183, TOTAL_LOSS = 0.4881642460823059
+[2023-01-24 11:41:48][fair_training.py][line:95][INFO] Epoch=[27/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.373096227645874, DIS_LOSS = 1.5214687585830688, TOTAL_LOSS = 0.9816837310791016
+[2023-01-24 11:41:48][fair_training.py][line:134][INFO] Epoch=[27/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1439; 1.5932; 1.1371; 1.146; 1.8277
+[2023-01-24 11:41:48][fair_training.py][line:198][INFO] current prior optimizer lr=5.81497370030401e-05
+[2023-01-24 11:41:48][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:48][fair_training.py][line:261][INFO] The training time for one epoch is: 1.952970027923584 seconds
+[2023-01-24 11:41:55][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [26] is: 0.9196752926402655
+[2023-01-24 11:41:55][fair_training.py][line:95][INFO] Epoch=[28/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.014683946967124939, DIS_LOSS = 1.1881656646728516, TOTAL_LOSS = 0.4899502396583557
+[2023-01-24 11:41:56][fair_training.py][line:95][INFO] Epoch=[28/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.2551063895225525, DIS_LOSS = 1.1732468605041504, TOTAL_LOSS = 0.7244051694869995
+[2023-01-24 11:41:56][fair_training.py][line:95][INFO] Epoch=[28/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.3438660502433777, DIS_LOSS = 1.4956473112106323, TOTAL_LOSS = 0.9421249628067017
+[2023-01-24 11:41:56][fair_training.py][line:95][INFO] Epoch=[28/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.019709130749106407, DIS_LOSS = 1.1712924242019653, TOTAL_LOSS = 0.48822611570358276
+[2023-01-24 11:41:57][fair_training.py][line:95][INFO] Epoch=[28/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.44270071387290955, DIS_LOSS = 1.467465877532959, TOTAL_LOSS = 1.0296870470046997
+[2023-01-24 11:41:57][fair_training.py][line:134][INFO] Epoch=[28/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1431; 1.2537; 1.5695; 1.159; 1.8052
+[2023-01-24 11:41:57][fair_training.py][line:198][INFO] current prior optimizer lr=5.233476330273609e-05
+[2023-01-24 11:41:57][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:57][fair_training.py][line:95][INFO] Epoch=[29/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.017360998317599297, DIS_LOSS = 1.181848406791687, TOTAL_LOSS = 0.49010035395622253
+[2023-01-24 11:41:58][fair_training.py][line:95][INFO] Epoch=[29/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.3448558449745178, DIS_LOSS = 1.361287236213684, TOTAL_LOSS = 0.8893707394599915
+[2023-01-24 11:41:58][fair_training.py][line:95][INFO] Epoch=[29/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.033816151320934296, DIS_LOSS = 1.144086480140686, TOTAL_LOSS = 0.4914507567882538
+[2023-01-24 11:41:58][fair_training.py][line:95][INFO] Epoch=[29/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.08905200660228729, DIS_LOSS = 1.1986525058746338, TOTAL_LOSS = 0.568513035774231
+[2023-01-24 11:41:58][fair_training.py][line:95][INFO] Epoch=[29/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.45490095019340515, DIS_LOSS = 1.6393861770629883, TOTAL_LOSS = 1.110655426979065
+[2023-01-24 11:41:59][fair_training.py][line:134][INFO] Epoch=[29/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.15; 1.5286; 1.148; 1.1711; 1.8132
+[2023-01-24 11:41:59][fair_training.py][line:198][INFO] current prior optimizer lr=4.7101286972462485e-05
+[2023-01-24 11:41:59][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:41:59][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9614431858062744 seconds
+[2023-01-24 11:42:06][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [28] is: 0.9195482202388962
+[2023-01-24 11:42:06][fair_training.py][line:95][INFO] Epoch=[30/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.013126887381076813, DIS_LOSS = 1.208082675933838, TOTAL_LOSS = 0.4963599443435669
+[2023-01-24 11:42:06][fair_training.py][line:95][INFO] Epoch=[30/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.44767552614212036, DIS_LOSS = 1.4504088163375854, TOTAL_LOSS = 1.0278390645980835
+[2023-01-24 11:42:07][fair_training.py][line:95][INFO] Epoch=[30/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.2655867338180542, DIS_LOSS = 1.2601757049560547, TOTAL_LOSS = 0.7696570158004761
+[2023-01-24 11:42:07][fair_training.py][line:95][INFO] Epoch=[30/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.013203105889260769, DIS_LOSS = 1.1922438144683838, TOTAL_LOSS = 0.4901006519794464
+[2023-01-24 11:42:07][fair_training.py][line:95][INFO] Epoch=[30/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.013679449446499348, DIS_LOSS = 1.19314706325531, TOTAL_LOSS = 0.490938276052475
+[2023-01-24 11:42:08][fair_training.py][line:134][INFO] Epoch=[30/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1461; 1.5603; 1.4335; 1.1396; 1.142
+[2023-01-24 11:42:08][fair_training.py][line:198][INFO] current prior optimizer lr=4.239115827521624e-05
+[2023-01-24 11:42:08][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:42:08][fair_training.py][line:95][INFO] Epoch=[31/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.18535681068897247, DIS_LOSS = 1.3133230209350586, TOTAL_LOSS = 0.7106860280036926
+[2023-01-24 11:42:08][fair_training.py][line:95][INFO] Epoch=[31/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.041098516434431076, DIS_LOSS = 1.1728479862213135, TOTAL_LOSS = 0.5102376937866211
+[2023-01-24 11:42:09][fair_training.py][line:95][INFO] Epoch=[31/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.15976151823997498, DIS_LOSS = 1.1297422647476196, TOTAL_LOSS = 0.6116584539413452
+[2023-01-24 11:42:09][fair_training.py][line:95][INFO] Epoch=[31/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.016186334192752838, DIS_LOSS = 1.160622477531433, TOTAL_LOSS = 0.480435311794281
+[2023-01-24 11:42:09][fair_training.py][line:95][INFO] Epoch=[31/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.023910220712423325, DIS_LOSS = 1.2067060470581055, TOTAL_LOSS = 0.5065926313400269
+[2023-01-24 11:42:10][fair_training.py][line:134][INFO] Epoch=[31/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.4951; 1.1789; 1.1788; 1.1502; 1.1643
+[2023-01-24 11:42:10][fair_training.py][line:198][INFO] current prior optimizer lr=3.8152042447694614e-05
+[2023-01-24 11:42:10][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:42:10][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9818780422210693 seconds
+[2023-01-24 11:42:16][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [30] is: 0.9194435723789448
+[2023-01-24 11:42:17][fair_training.py][line:95][INFO] Epoch=[32/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.026266463100910187, DIS_LOSS = 1.1564632654190063, TOTAL_LOSS = 0.48885175585746765
+[2023-01-24 11:42:17][fair_training.py][line:95][INFO] Epoch=[32/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.24582478404045105, DIS_LOSS = 1.3462704420089722, TOTAL_LOSS = 0.7843329906463623
+[2023-01-24 11:42:17][fair_training.py][line:95][INFO] Epoch=[32/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.3186962902545929, DIS_LOSS = 1.5114820003509521, TOTAL_LOSS = 0.9232890605926514
+[2023-01-24 11:42:17][fair_training.py][line:95][INFO] Epoch=[32/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.02014588750898838, DIS_LOSS = 1.1626888513565063, TOTAL_LOSS = 0.4852214455604553
+[2023-01-24 11:42:18][fair_training.py][line:95][INFO] Epoch=[32/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.48259538412094116, DIS_LOSS = 1.582547903060913, TOTAL_LOSS = 1.1156145334243774
+[2023-01-24 11:42:18][fair_training.py][line:134][INFO] Epoch=[32/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1665; 1.4472; 1.5432; 1.1522; 1.5763
+[2023-01-24 11:42:18][fair_training.py][line:198][INFO] current prior optimizer lr=3.433683820292515e-05
+[2023-01-24 11:42:18][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:42:18][fair_training.py][line:95][INFO] Epoch=[33/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.22918057441711426, DIS_LOSS = 1.354189157485962, TOTAL_LOSS = 0.7708562612533569
+[2023-01-24 11:42:19][fair_training.py][line:95][INFO] Epoch=[33/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.137685164809227, DIS_LOSS = 1.183526635169983, TOTAL_LOSS = 0.6110958456993103
+[2023-01-24 11:42:19][fair_training.py][line:95][INFO] Epoch=[33/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.09398779273033142, DIS_LOSS = 1.140682339668274, TOTAL_LOSS = 0.5502607226371765
+[2023-01-24 11:42:19][fair_training.py][line:95][INFO] Epoch=[33/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.02440781518816948, DIS_LOSS = 1.1545631885528564, TOTAL_LOSS = 0.48623308539390564
+[2023-01-24 11:42:20][fair_training.py][line:95][INFO] Epoch=[33/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.19889196753501892, DIS_LOSS = 1.2607067823410034, TOTAL_LOSS = 0.7031747102737427
+[2023-01-24 11:42:20][fair_training.py][line:134][INFO] Epoch=[33/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.6024; 1.1962; 1.1677; 1.1688; 1.4304
+[2023-01-24 11:42:20][fair_training.py][line:198][INFO] current prior optimizer lr=3.090315438263264e-05
+[2023-01-24 11:42:20][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:42:20][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9405059814453125 seconds
+[2023-01-24 11:42:27][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [32] is: 0.9196080190160111
+[2023-01-24 11:42:27][fair_training.py][line:95][INFO] Epoch=[34/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.01827540434896946, DIS_LOSS = 1.1713446378707886, TOTAL_LOSS = 0.4868132770061493
+[2023-01-24 11:42:27][fair_training.py][line:95][INFO] Epoch=[34/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.10130961984395981, DIS_LOSS = 1.1810857057571411, TOTAL_LOSS = 0.5737438797950745
+[2023-01-24 11:42:28][fair_training.py][line:95][INFO] Epoch=[34/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.03523506224155426, DIS_LOSS = 1.1374478340148926, TOTAL_LOSS = 0.4902142286300659
+[2023-01-24 11:42:28][fair_training.py][line:95][INFO] Epoch=[34/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.18708765506744385, DIS_LOSS = 1.3005846738815308, TOTAL_LOSS = 0.7073215246200562
+[2023-01-24 11:42:28][fair_training.py][line:95][INFO] Epoch=[34/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.0826195776462555, DIS_LOSS = 1.1889029741287231, TOTAL_LOSS = 0.5581808090209961
+[2023-01-24 11:42:29][fair_training.py][line:134][INFO] Epoch=[34/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1537; 1.2112; 1.1493; 1.7177; 1.2194
+[2023-01-24 11:42:29][fair_training.py][line:198][INFO] current prior optimizer lr=2.7812838944369376e-05
+[2023-01-24 11:42:29][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:42:29][fair_training.py][line:95][INFO] Epoch=[35/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.020404739305377007, DIS_LOSS = 1.1584304571151733, TOTAL_LOSS = 0.48377692699432373
+[2023-01-24 11:42:29][fair_training.py][line:95][INFO] Epoch=[35/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.25076648592948914, DIS_LOSS = 1.1744719743728638, TOTAL_LOSS = 0.720555305480957
+[2023-01-24 11:42:30][fair_training.py][line:95][INFO] Epoch=[35/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.24123358726501465, DIS_LOSS = 1.2355741262435913, TOTAL_LOSS = 0.7354632616043091
+[2023-01-24 11:42:30][fair_training.py][line:95][INFO] Epoch=[35/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.018529094755649567, DIS_LOSS = 1.1587200164794922, TOTAL_LOSS = 0.4820170998573303
+[2023-01-24 11:42:30][fair_training.py][line:95][INFO] Epoch=[35/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.0615287721157074, DIS_LOSS = 1.2072867155075073, TOTAL_LOSS = 0.5444434881210327
+[2023-01-24 11:42:31][fair_training.py][line:134][INFO] Epoch=[35/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1643; 1.266; 1.2614; 1.1597; 1.1836
+[2023-01-24 11:42:31][fair_training.py][line:198][INFO] current prior optimizer lr=2.503155504993244e-05
+[2023-01-24 11:42:31][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:42:31][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9471521377563477 seconds
+[2023-01-24 11:42:37][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [34] is: 0.9198472141244711
+[2023-01-24 11:42:38][fair_training.py][line:95][INFO] Epoch=[36/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.019734665751457214, DIS_LOSS = 1.1798834800720215, TOTAL_LOSS = 0.491688072681427
+[2023-01-24 11:42:38][fair_training.py][line:95][INFO] Epoch=[36/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.3119332492351532, DIS_LOSS = 1.2014949321746826, TOTAL_LOSS = 0.7925312519073486
+[2023-01-24 11:42:38][fair_training.py][line:95][INFO] Epoch=[36/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.10634013265371323, DIS_LOSS = 1.1443166732788086, TOTAL_LOSS = 0.5640668272972107
+[2023-01-24 11:42:39][fair_training.py][line:95][INFO] Epoch=[36/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.08417920768260956, DIS_LOSS = 1.1687297821044922, TOTAL_LOSS = 0.5516711473464966
+[2023-01-24 11:42:39][fair_training.py][line:95][INFO] Epoch=[36/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.06597384810447693, DIS_LOSS = 1.1739596128463745, TOTAL_LOSS = 0.5355576872825623
+[2023-01-24 11:42:39][fair_training.py][line:134][INFO] Epoch=[36/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1625; 1.467; 1.1403; 1.2354; 1.1848
+[2023-01-24 11:42:39][fair_training.py][line:198][INFO] current prior optimizer lr=2.2528399544939195e-05
+[2023-01-24 11:42:39][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:42:40][fair_training.py][line:95][INFO] Epoch=[37/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.1706736981868744, DIS_LOSS = 1.3148678541183472, TOTAL_LOSS = 0.6966208219528198
+[2023-01-24 11:42:40][fair_training.py][line:95][INFO] Epoch=[37/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.033784542232751846, DIS_LOSS = 1.1553192138671875, TOTAL_LOSS = 0.49591222405433655
+[2023-01-24 11:42:40][fair_training.py][line:95][INFO] Epoch=[37/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.05470094457268715, DIS_LOSS = 1.1287806034088135, TOTAL_LOSS = 0.5062131881713867
+[2023-01-24 11:42:41][fair_training.py][line:95][INFO] Epoch=[37/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.07176964730024338, DIS_LOSS = 1.1586339473724365, TOTAL_LOSS = 0.5352232456207275
+[2023-01-24 11:42:41][fair_training.py][line:95][INFO] Epoch=[37/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.06084674224257469, DIS_LOSS = 1.2059725522994995, TOTAL_LOSS = 0.5432357788085938
+[2023-01-24 11:42:41][fair_training.py][line:134][INFO] Epoch=[37/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.5132; 1.1687; 1.169; 1.229; 1.192
+[2023-01-24 11:42:41][fair_training.py][line:198][INFO] current prior optimizer lr=2.0275559590445276e-05
+[2023-01-24 11:42:41][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:42:41][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9554851055145264 seconds
+[2023-01-24 11:42:48][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [36] is: 0.9195482202388962
+[2023-01-24 11:42:48][fair_training.py][line:95][INFO] Epoch=[38/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.028417546302080154, DIS_LOSS = 1.1452282667160034, TOTAL_LOSS = 0.48650887608528137
+[2023-01-24 11:42:49][fair_training.py][line:95][INFO] Epoch=[38/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.3247690796852112, DIS_LOSS = 1.2812942266464233, TOTAL_LOSS = 0.8372867703437805
+[2023-01-24 11:42:49][fair_training.py][line:95][INFO] Epoch=[38/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.12259022146463394, DIS_LOSS = 1.1652801036834717, TOTAL_LOSS = 0.5887022614479065
+[2023-01-24 11:42:49][fair_training.py][line:95][INFO] Epoch=[38/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.02708190120756626, DIS_LOSS = 1.1658388376235962, TOTAL_LOSS = 0.4934174418449402
+[2023-01-24 11:42:50][fair_training.py][line:95][INFO] Epoch=[38/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.05265252664685249, DIS_LOSS = 1.1875919103622437, TOTAL_LOSS = 0.5276892781257629
+[2023-01-24 11:42:50][fair_training.py][line:134][INFO] Epoch=[38/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1871; 1.5426; 1.1562; 1.1762; 1.1598
+[2023-01-24 11:42:50][fair_training.py][line:198][INFO] current prior optimizer lr=1.8248003631400748e-05
+[2023-01-24 11:42:50][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:42:50][fair_training.py][line:95][INFO] Epoch=[39/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.019584307447075844, DIS_LOSS = 1.1810911893844604, TOTAL_LOSS = 0.49202078580856323
+[2023-01-24 11:42:51][fair_training.py][line:95][INFO] Epoch=[39/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.12513095140457153, DIS_LOSS = 1.1609034538269043, TOTAL_LOSS = 0.5894923210144043
+[2023-01-24 11:42:51][fair_training.py][line:95][INFO] Epoch=[39/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.023104801774024963, DIS_LOSS = 1.1345733404159546, TOTAL_LOSS = 0.47693413496017456
+[2023-01-24 11:42:51][fair_training.py][line:95][INFO] Epoch=[39/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.03189001977443695, DIS_LOSS = 1.1469449996948242, TOTAL_LOSS = 0.49066799879074097
+[2023-01-24 11:42:52][fair_training.py][line:95][INFO] Epoch=[39/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.04019482433795929, DIS_LOSS = 1.1855570077896118, TOTAL_LOSS = 0.5144176483154297
+[2023-01-24 11:42:52][fair_training.py][line:134][INFO] Epoch=[39/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.1466; 1.2057; 1.1209; 1.1906; 1.1609
+[2023-01-24 11:42:52][fair_training.py][line:198][INFO] current prior optimizer lr=1.6423203268260675e-05
+[2023-01-24 11:42:52][fair_training.py][line:200][INFO] current post optimizer lr=0.4
+[2023-01-24 11:42:52][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9634599685668945 seconds
+[2023-01-24 11:42:59][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [38] is: 0.9195183208503386
+[2023-01-24 11:42:59][fair_training.py][line:95][INFO] Epoch=[40/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.02554420754313469, DIS_LOSS = 1.1679043769836426, TOTAL_LOSS = 0.49270594120025635
+[2023-01-24 11:42:59][fair_training.py][line:95][INFO] Epoch=[40/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.3333923816680908, DIS_LOSS = 1.3270965814590454, TOTAL_LOSS = 0.8642310500144958
+[2023-01-24 11:43:00][fair_training.py][line:95][INFO] Epoch=[40/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.23520369827747345, DIS_LOSS = 1.2047133445739746, TOTAL_LOSS = 0.717089056968689
+[2023-01-24 11:43:00][fair_training.py][line:95][INFO] Epoch=[40/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.03242750093340874, DIS_LOSS = 1.1698458194732666, TOTAL_LOSS = 0.5003658533096313
+[2023-01-24 11:43:00][fair_training.py][line:95][INFO] Epoch=[40/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.20076553523540497, DIS_LOSS = 1.2052805423736572, TOTAL_LOSS = 0.682877779006958
+[2023-01-24 11:43:01][fair_training.py][line:134][INFO] Epoch=[40/80], Outer Loop Step=[5/5], KLD for EACH Qa: 1.175; 1.647; 1.3408; 1.1813; 1.285
+[2023-01-24 11:43:01][fair_training.py][line:198][INFO] current prior optimizer lr=1.4780882941434607e-05
+[2023-01-24 11:43:01][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:01][fair_training.py][line:95][INFO] Epoch=[41/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.01881372183561325, DIS_LOSS = 0.6246222257614136, TOTAL_LOSS = 0.26866260170936584
+[2023-01-24 11:43:01][fair_training.py][line:95][INFO] Epoch=[41/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.03502964228391647, DIS_LOSS = 0.6604261994361877, TOTAL_LOSS = 0.2992001473903656
+[2023-01-24 11:43:02][fair_training.py][line:95][INFO] Epoch=[41/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.22063523530960083, DIS_LOSS = 0.6156132221221924, TOTAL_LOSS = 0.46688053011894226
+[2023-01-24 11:43:02][fair_training.py][line:95][INFO] Epoch=[41/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.014965390786528587, DIS_LOSS = 0.6249436736106873, TOTAL_LOSS = 0.26494285464286804
+[2023-01-24 11:43:02][fair_training.py][line:95][INFO] Epoch=[41/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.07626181840896606, DIS_LOSS = 0.6376275420188904, TOTAL_LOSS = 0.3313128352165222
+[2023-01-24 11:43:03][fair_training.py][line:134][INFO] Epoch=[41/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6205; 0.6554; 0.6132; 0.6194; 0.6326
+[2023-01-24 11:43:03][fair_training.py][line:198][INFO] current prior optimizer lr=1.3302794647291146e-05
+[2023-01-24 11:43:03][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:03][fair_training.py][line:261][INFO] The training time for one epoch is: 2.0194969177246094 seconds
+[2023-01-24 11:43:09][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [40] is: 0.9193463993661329
+[2023-01-24 11:43:10][fair_training.py][line:95][INFO] Epoch=[42/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.11575441062450409, DIS_LOSS = 0.6044609546661377, TOTAL_LOSS = 0.35753878951072693
+[2023-01-24 11:43:10][fair_training.py][line:95][INFO] Epoch=[42/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.11580164730548859, DIS_LOSS = 0.628033459186554, TOTAL_LOSS = 0.3670150637626648
+[2023-01-24 11:43:10][fair_training.py][line:95][INFO] Epoch=[42/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.20087334513664246, DIS_LOSS = 0.6088667511940002, TOTAL_LOSS = 0.4444200396537781
+[2023-01-24 11:43:11][fair_training.py][line:95][INFO] Epoch=[42/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.07533424347639084, DIS_LOSS = 0.6083305478096008, TOTAL_LOSS = 0.3186664581298828
+[2023-01-24 11:43:11][fair_training.py][line:95][INFO] Epoch=[42/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.018903210759162903, DIS_LOSS = 0.6202567219734192, TOTAL_LOSS = 0.26700592041015625
+[2023-01-24 11:43:11][fair_training.py][line:134][INFO] Epoch=[42/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6015; 0.627; 0.611; 0.6057; 0.6183
+[2023-01-24 11:43:11][fair_training.py][line:198][INFO] current prior optimizer lr=1.1972515182562031e-05
+[2023-01-24 11:43:11][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:12][fair_training.py][line:95][INFO] Epoch=[43/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.01277015171945095, DIS_LOSS = 0.6123942732810974, TOTAL_LOSS = 0.25772786140441895
+[2023-01-24 11:43:12][fair_training.py][line:95][INFO] Epoch=[43/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.24153335392475128, DIS_LOSS = 0.6016585230827332, TOTAL_LOSS = 0.48219674825668335
+[2023-01-24 11:43:13][fair_training.py][line:95][INFO] Epoch=[43/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.22121526300907135, DIS_LOSS = 0.6092578172683716, TOTAL_LOSS = 0.4649183750152588
+[2023-01-24 11:43:13][fair_training.py][line:95][INFO] Epoch=[43/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.06970740109682083, DIS_LOSS = 0.6117353439331055, TOTAL_LOSS = 0.3144015371799469
+[2023-01-24 11:43:13][fair_training.py][line:95][INFO] Epoch=[43/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.01897863671183586, DIS_LOSS = 0.6307749152183533, TOTAL_LOSS = 0.27128860354423523
+[2023-01-24 11:43:14][fair_training.py][line:134][INFO] Epoch=[43/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6117; 0.6049; 0.6108; 0.612; 0.6251
+[2023-01-24 11:43:14][fair_training.py][line:198][INFO] current prior optimizer lr=1.0775263664305828e-05
+[2023-01-24 11:43:14][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:14][fair_training.py][line:261][INFO] The training time for one epoch is: 2.234833240509033 seconds
+[2023-01-24 11:43:20][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [42] is: 0.9194360975318054
+[2023-01-24 11:43:21][fair_training.py][line:95][INFO] Epoch=[44/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.021248580887913704, DIS_LOSS = 0.6159152388572693, TOTAL_LOSS = 0.2676146924495697
+[2023-01-24 11:43:21][fair_training.py][line:95][INFO] Epoch=[44/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.03511250391602516, DIS_LOSS = 0.6521304845809937, TOTAL_LOSS = 0.29596468806266785
+[2023-01-24 11:43:21][fair_training.py][line:95][INFO] Epoch=[44/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.1363310068845749, DIS_LOSS = 0.6206762790679932, TOTAL_LOSS = 0.38460153341293335
+[2023-01-24 11:43:22][fair_training.py][line:95][INFO] Epoch=[44/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.027503736317157745, DIS_LOSS = 0.6162934899330139, TOTAL_LOSS = 0.2740211486816406
+[2023-01-24 11:43:22][fair_training.py][line:95][INFO] Epoch=[44/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.13040079176425934, DIS_LOSS = 0.6070376038551331, TOTAL_LOSS = 0.37321585416793823
+[2023-01-24 11:43:22][fair_training.py][line:134][INFO] Epoch=[44/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.611; 0.6474; 0.6213; 0.6182; 0.605
+[2023-01-24 11:43:22][fair_training.py][line:198][INFO] current prior optimizer lr=9.697737297875246e-06
+[2023-01-24 11:43:22][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:23][fair_training.py][line:95][INFO] Epoch=[45/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.027161549776792526, DIS_LOSS = 0.618187427520752, TOTAL_LOSS = 0.2744365334510803
+[2023-01-24 11:43:23][fair_training.py][line:95][INFO] Epoch=[45/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.26328855752944946, DIS_LOSS = 0.6207101941108704, TOTAL_LOSS = 0.5115726590156555
+[2023-01-24 11:43:23][fair_training.py][line:95][INFO] Epoch=[45/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.24458551406860352, DIS_LOSS = 0.6047884225845337, TOTAL_LOSS = 0.48650088906288147
+[2023-01-24 11:43:24][fair_training.py][line:95][INFO] Epoch=[45/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.012432643212378025, DIS_LOSS = 0.6155902743339539, TOTAL_LOSS = 0.2586687505245209
+[2023-01-24 11:43:24][fair_training.py][line:95][INFO] Epoch=[45/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.04217197373509407, DIS_LOSS = 0.6295127272605896, TOTAL_LOSS = 0.2939770817756653
+[2023-01-24 11:43:24][fair_training.py][line:134][INFO] Epoch=[45/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.619; 0.6232; 0.6049; 0.6107; 0.6275
+[2023-01-24 11:43:24][fair_training.py][line:198][INFO] current prior optimizer lr=8.727963568087722e-06
+[2023-01-24 11:43:24][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:24][fair_training.py][line:261][INFO] The training time for one epoch is: 1.993340253829956 seconds
+[2023-01-24 11:43:31][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [44] is: 0.9194958963089205
+[2023-01-24 11:43:31][fair_training.py][line:95][INFO] Epoch=[46/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.02391907572746277, DIS_LOSS = 0.6158804297447205, TOTAL_LOSS = 0.2702712416648865
+[2023-01-24 11:43:32][fair_training.py][line:95][INFO] Epoch=[46/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.20603124797344208, DIS_LOSS = 0.6163445711135864, TOTAL_LOSS = 0.45256906747817993
+[2023-01-24 11:43:32][fair_training.py][line:95][INFO] Epoch=[46/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.09283356368541718, DIS_LOSS = 0.6136112809181213, TOTAL_LOSS = 0.3382780849933624
+[2023-01-24 11:43:32][fair_training.py][line:95][INFO] Epoch=[46/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.06549249589443207, DIS_LOSS = 0.6089410185813904, TOTAL_LOSS = 0.3090689182281494
+[2023-01-24 11:43:33][fair_training.py][line:95][INFO] Epoch=[46/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.053178172558546066, DIS_LOSS = 0.6197140216827393, TOTAL_LOSS = 0.30106377601623535
+[2023-01-24 11:43:33][fair_training.py][line:134][INFO] Epoch=[46/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6142; 0.6183; 0.6126; 0.6124; 0.6205
+[2023-01-24 11:43:33][fair_training.py][line:198][INFO] current prior optimizer lr=7.85516721127895e-06
+[2023-01-24 11:43:33][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:33][fair_training.py][line:95][INFO] Epoch=[47/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.1263422667980194, DIS_LOSS = 0.6028029322624207, TOTAL_LOSS = 0.36746343970298767
+[2023-01-24 11:43:34][fair_training.py][line:95][INFO] Epoch=[47/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.03363100066781044, DIS_LOSS = 0.6413286924362183, TOTAL_LOSS = 0.29016247391700745
+[2023-01-24 11:43:34][fair_training.py][line:95][INFO] Epoch=[47/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.17154885828495026, DIS_LOSS = 0.6085785031318665, TOTAL_LOSS = 0.4149802625179291
+[2023-01-24 11:43:34][fair_training.py][line:95][INFO] Epoch=[47/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.14633974432945251, DIS_LOSS = 0.5970140099525452, TOTAL_LOSS = 0.385145366191864
+[2023-01-24 11:43:35][fair_training.py][line:95][INFO] Epoch=[47/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.09166479110717773, DIS_LOSS = 0.6151553988456726, TOTAL_LOSS = 0.3377269506454468
+[2023-01-24 11:43:35][fair_training.py][line:134][INFO] Epoch=[47/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6041; 0.6386; 0.6081; 0.5993; 0.6128
+[2023-01-24 11:43:35][fair_training.py][line:198][INFO] current prior optimizer lr=7.069650490151056e-06
+[2023-01-24 11:43:35][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:35][fair_training.py][line:261][INFO] The training time for one epoch is: 1.955355167388916 seconds
+[2023-01-24 11:43:42][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [46] is: 0.9198696386658893
+[2023-01-24 11:43:42][fair_training.py][line:95][INFO] Epoch=[48/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.11072232574224472, DIS_LOSS = 0.5947037935256958, TOTAL_LOSS = 0.34860384464263916
+[2023-01-24 11:43:42][fair_training.py][line:95][INFO] Epoch=[48/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.13243065774440765, DIS_LOSS = 0.6187504529953003, TOTAL_LOSS = 0.37993085384368896
+[2023-01-24 11:43:43][fair_training.py][line:95][INFO] Epoch=[48/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.2055339217185974, DIS_LOSS = 0.6122487783432007, TOTAL_LOSS = 0.4504334330558777
+[2023-01-24 11:43:43][fair_training.py][line:95][INFO] Epoch=[48/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.021744798868894577, DIS_LOSS = 0.6116617321968079, TOTAL_LOSS = 0.2664094865322113
+[2023-01-24 11:43:43][fair_training.py][line:95][INFO] Epoch=[48/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.08266094326972961, DIS_LOSS = 0.635826051235199, TOTAL_LOSS = 0.3369913697242737
+[2023-01-24 11:43:43][fair_training.py][line:134][INFO] Epoch=[48/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.5969; 0.6236; 0.6113; 0.6093; 0.6337
+[2023-01-24 11:43:43][fair_training.py][line:198][INFO] current prior optimizer lr=6.362685441135951e-06
+[2023-01-24 11:43:43][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:44][fair_training.py][line:95][INFO] Epoch=[49/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.019065789878368378, DIS_LOSS = 0.6102607250213623, TOTAL_LOSS = 0.2631700932979584
+[2023-01-24 11:43:44][fair_training.py][line:95][INFO] Epoch=[49/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.1267174929380417, DIS_LOSS = 0.6246927976608276, TOTAL_LOSS = 0.376594603061676
+[2023-01-24 11:43:44][fair_training.py][line:95][INFO] Epoch=[49/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.0737767145037651, DIS_LOSS = 0.6096677780151367, TOTAL_LOSS = 0.31764382123947144
+[2023-01-24 11:43:45][fair_training.py][line:95][INFO] Epoch=[49/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.057077255100011826, DIS_LOSS = 0.6140279173851013, TOTAL_LOSS = 0.3026884198188782
+[2023-01-24 11:43:45][fair_training.py][line:95][INFO] Epoch=[49/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.02728593908250332, DIS_LOSS = 0.6256611347198486, TOTAL_LOSS = 0.2775503993034363
+[2023-01-24 11:43:45][fair_training.py][line:134][INFO] Epoch=[49/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6084; 0.6193; 0.6073; 0.6126; 0.6266
+[2023-01-24 11:43:45][fair_training.py][line:198][INFO] current prior optimizer lr=5.7264168970223554e-06
+[2023-01-24 11:43:45][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:45][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9302968978881836 seconds
+[2023-01-24 11:43:52][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [48] is: 0.9193762987546905
+[2023-01-24 11:43:52][fair_training.py][line:95][INFO] Epoch=[50/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.02527821995317936, DIS_LOSS = 0.613213062286377, TOTAL_LOSS = 0.2705634534358978
+[2023-01-24 11:43:53][fair_training.py][line:95][INFO] Epoch=[50/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.04917425289750099, DIS_LOSS = 0.6491634249687195, TOTAL_LOSS = 0.3088396191596985
+[2023-01-24 11:43:53][fair_training.py][line:95][INFO] Epoch=[50/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.10192032158374786, DIS_LOSS = 0.6354047656059265, TOTAL_LOSS = 0.3560822606086731
+[2023-01-24 11:43:53][fair_training.py][line:95][INFO] Epoch=[50/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.13082149624824524, DIS_LOSS = 0.5989699363708496, TOTAL_LOSS = 0.3704094886779785
+[2023-01-24 11:43:54][fair_training.py][line:95][INFO] Epoch=[50/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.03921191394329071, DIS_LOSS = 0.6262082457542419, TOTAL_LOSS = 0.28969520330429077
+[2023-01-24 11:43:54][fair_training.py][line:134][INFO] Epoch=[50/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6133; 0.6445; 0.6358; 0.6021; 0.6214
+[2023-01-24 11:43:54][fair_training.py][line:198][INFO] current prior optimizer lr=5.15377520732012e-06
+[2023-01-24 11:43:54][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:54][fair_training.py][line:95][INFO] Epoch=[51/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.020807163789868355, DIS_LOSS = 0.6133915781974792, TOTAL_LOSS = 0.26616379618644714
+[2023-01-24 11:43:55][fair_training.py][line:95][INFO] Epoch=[51/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.15566247701644897, DIS_LOSS = 0.6252758502960205, TOTAL_LOSS = 0.4057728350162506
+[2023-01-24 11:43:55][fair_training.py][line:95][INFO] Epoch=[51/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.26452744007110596, DIS_LOSS = 0.6083770990371704, TOTAL_LOSS = 0.507878303527832
+[2023-01-24 11:43:55][fair_training.py][line:95][INFO] Epoch=[51/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.0165651123970747, DIS_LOSS = 0.6112546324729919, TOTAL_LOSS = 0.2610669732093811
+[2023-01-24 11:43:56][fair_training.py][line:95][INFO] Epoch=[51/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.12583240866661072, DIS_LOSS = 0.6091440916061401, TOTAL_LOSS = 0.36949002742767334
+[2023-01-24 11:43:56][fair_training.py][line:134][INFO] Epoch=[51/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6125; 0.6264; 0.6108; 0.6135; 0.6113
+[2023-01-24 11:43:56][fair_training.py][line:198][INFO] current prior optimizer lr=4.638397686588108e-06
+[2023-01-24 11:43:56][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:43:56][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9885308742523193 seconds
+[2023-01-24 11:44:03][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [50] is: 0.9193090251304361
+[2023-01-24 11:44:03][fair_training.py][line:95][INFO] Epoch=[52/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.01953360252082348, DIS_LOSS = 0.6144099235534668, TOTAL_LOSS = 0.2652975618839264
+[2023-01-24 11:44:03][fair_training.py][line:95][INFO] Epoch=[52/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.15005160868167877, DIS_LOSS = 0.6238178014755249, TOTAL_LOSS = 0.3995787501335144
+[2023-01-24 11:44:04][fair_training.py][line:95][INFO] Epoch=[52/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.04560786485671997, DIS_LOSS = 0.6239689588546753, TOTAL_LOSS = 0.29519546031951904
+[2023-01-24 11:44:04][fair_training.py][line:95][INFO] Epoch=[52/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.04799627140164375, DIS_LOSS = 0.6192694306373596, TOTAL_LOSS = 0.29570403695106506
+[2023-01-24 11:44:04][fair_training.py][line:95][INFO] Epoch=[52/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.03195222467184067, DIS_LOSS = 0.6226485967636108, TOTAL_LOSS = 0.2810116708278656
+[2023-01-24 11:44:05][fair_training.py][line:134][INFO] Epoch=[52/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6151; 0.6256; 0.6245; 0.6175; 0.6246
+[2023-01-24 11:44:05][fair_training.py][line:198][INFO] current prior optimizer lr=4.174557917929298e-06
+[2023-01-24 11:44:05][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:05][fair_training.py][line:95][INFO] Epoch=[53/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.01590988039970398, DIS_LOSS = 0.6106715202331543, TOTAL_LOSS = 0.26017850637435913
+[2023-01-24 11:44:05][fair_training.py][line:95][INFO] Epoch=[53/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.2070351392030716, DIS_LOSS = 0.6155147552490234, TOTAL_LOSS = 0.4532410502433777
+[2023-01-24 11:44:06][fair_training.py][line:95][INFO] Epoch=[53/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.15974600613117218, DIS_LOSS = 0.6153758764266968, TOTAL_LOSS = 0.4058963656425476
+[2023-01-24 11:44:06][fair_training.py][line:95][INFO] Epoch=[53/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.06460870057344437, DIS_LOSS = 0.6113567352294922, TOTAL_LOSS = 0.30915141105651855
+[2023-01-24 11:44:06][fair_training.py][line:95][INFO] Epoch=[53/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.24049147963523865, DIS_LOSS = 0.6002219319343567, TOTAL_LOSS = 0.48058027029037476
+[2023-01-24 11:44:07][fair_training.py][line:134][INFO] Epoch=[53/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6099; 0.6176; 0.6159; 0.6139; 0.5982
+[2023-01-24 11:44:07][fair_training.py][line:198][INFO] current prior optimizer lr=3.7571021261363684e-06
+[2023-01-24 11:44:07][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:07][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9665658473968506 seconds
+[2023-01-24 11:44:13][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [52] is: 0.9196080190160111
+[2023-01-24 11:44:14][fair_training.py][line:95][INFO] Epoch=[54/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.02524026669561863, DIS_LOSS = 0.6138404011726379, TOTAL_LOSS = 0.2707764208316803
+[2023-01-24 11:44:14][fair_training.py][line:95][INFO] Epoch=[54/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.03582683578133583, DIS_LOSS = 0.6406543850898743, TOTAL_LOSS = 0.2920885980129242
+[2023-01-24 11:44:14][fair_training.py][line:95][INFO] Epoch=[54/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.03932726010680199, DIS_LOSS = 0.6292853951454163, TOTAL_LOSS = 0.29104143381118774
+[2023-01-24 11:44:15][fair_training.py][line:95][INFO] Epoch=[54/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.0181228369474411, DIS_LOSS = 0.6199154853820801, TOTAL_LOSS = 0.2660890221595764
+[2023-01-24 11:44:15][fair_training.py][line:95][INFO] Epoch=[54/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.14540526270866394, DIS_LOSS = 0.5963921546936035, TOTAL_LOSS = 0.38396212458610535
+[2023-01-24 11:44:15][fair_training.py][line:134][INFO] Epoch=[54/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6149; 0.64; 0.632; 0.616; 0.5962
+[2023-01-24 11:44:15][fair_training.py][line:198][INFO] current prior optimizer lr=3.3813919135227317e-06
+[2023-01-24 11:44:15][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:16][fair_training.py][line:95][INFO] Epoch=[55/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.02106427401304245, DIS_LOSS = 0.6134387254714966, TOTAL_LOSS = 0.2664397656917572
+[2023-01-24 11:44:16][fair_training.py][line:95][INFO] Epoch=[55/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.13537496328353882, DIS_LOSS = 0.614798367023468, TOTAL_LOSS = 0.381294310092926
+[2023-01-24 11:44:16][fair_training.py][line:95][INFO] Epoch=[55/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.12105651199817657, DIS_LOSS = 0.6210495829582214, TOTAL_LOSS = 0.3694763481616974
+[2023-01-24 11:44:17][fair_training.py][line:95][INFO] Epoch=[55/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.015319300815463066, DIS_LOSS = 0.6158039569854736, TOTAL_LOSS = 0.26164087653160095
+[2023-01-24 11:44:17][fair_training.py][line:95][INFO] Epoch=[55/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.12158934772014618, DIS_LOSS = 0.603645920753479, TOTAL_LOSS = 0.36304771900177
+[2023-01-24 11:44:17][fair_training.py][line:134][INFO] Epoch=[55/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6136; 0.6147; 0.618; 0.6113; 0.6051
+[2023-01-24 11:44:17][fair_training.py][line:198][INFO] current prior optimizer lr=3.0432527221704586e-06
+[2023-01-24 11:44:17][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:17][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9717249870300293 seconds
+[2023-01-24 11:44:24][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [54] is: 0.9196678177931261
+[2023-01-24 11:44:24][fair_training.py][line:95][INFO] Epoch=[56/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.11279105395078659, DIS_LOSS = 0.5955626964569092, TOTAL_LOSS = 0.3510161340236664
+[2023-01-24 11:44:25][fair_training.py][line:95][INFO] Epoch=[56/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.12196803838014603, DIS_LOSS = 0.6272673010826111, TOTAL_LOSS = 0.3728749454021454
+[2023-01-24 11:44:25][fair_training.py][line:95][INFO] Epoch=[56/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.07870952785015106, DIS_LOSS = 0.6227633357048035, TOTAL_LOSS = 0.32781487703323364
+[2023-01-24 11:44:25][fair_training.py][line:95][INFO] Epoch=[56/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.017849856987595558, DIS_LOSS = 0.6175788640975952, TOTAL_LOSS = 0.2648814022541046
+[2023-01-24 11:44:26][fair_training.py][line:95][INFO] Epoch=[56/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.14685283601284027, DIS_LOSS = 0.6089732050895691, TOTAL_LOSS = 0.3904421329498291
+[2023-01-24 11:44:26][fair_training.py][line:134][INFO] Epoch=[56/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.5929; 0.6288; 0.6207; 0.6164; 0.6094
+[2023-01-24 11:44:26][fair_training.py][line:198][INFO] current prior optimizer lr=2.7389274499534128e-06
+[2023-01-24 11:44:26][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:26][fair_training.py][line:95][INFO] Epoch=[57/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.046258844435214996, DIS_LOSS = 0.6182000637054443, TOTAL_LOSS = 0.2935388684272766
+[2023-01-24 11:44:27][fair_training.py][line:95][INFO] Epoch=[57/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.18764546513557434, DIS_LOSS = 0.6123937964439392, TOTAL_LOSS = 0.43260300159454346
+[2023-01-24 11:44:27][fair_training.py][line:95][INFO] Epoch=[57/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.19492705166339874, DIS_LOSS = 0.6238754391670227, TOTAL_LOSS = 0.44447723031044006
+[2023-01-24 11:44:27][fair_training.py][line:95][INFO] Epoch=[57/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.06776098906993866, DIS_LOSS = 0.6067097783088684, TOTAL_LOSS = 0.3104448914527893
+[2023-01-24 11:44:28][fair_training.py][line:95][INFO] Epoch=[57/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.07158289104700089, DIS_LOSS = 0.6178495287895203, TOTAL_LOSS = 0.3187226951122284
+[2023-01-24 11:44:28][fair_training.py][line:134][INFO] Epoch=[57/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6228; 0.61; 0.6244; 0.6069; 0.6211
+[2023-01-24 11:44:28][fair_training.py][line:198][INFO] current prior optimizer lr=2.4650347049580716e-06
+[2023-01-24 11:44:28][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:28][fair_training.py][line:261][INFO] The training time for one epoch is: 2.0167627334594727 seconds
+[2023-01-24 11:44:35][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [56] is: 0.9196229687102899
+[2023-01-24 11:44:35][fair_training.py][line:95][INFO] Epoch=[58/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.023906994611024857, DIS_LOSS = 0.614288866519928, TOTAL_LOSS = 0.2696225345134735
+[2023-01-24 11:44:35][fair_training.py][line:95][INFO] Epoch=[58/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.057006143033504486, DIS_LOSS = 0.6351599097251892, TOTAL_LOSS = 0.31107011437416077
+[2023-01-24 11:44:36][fair_training.py][line:95][INFO] Epoch=[58/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.06771571189165115, DIS_LOSS = 0.6288873553276062, TOTAL_LOSS = 0.31927064061164856
+[2023-01-24 11:44:36][fair_training.py][line:95][INFO] Epoch=[58/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.06297718733549118, DIS_LOSS = 0.6052545309066772, TOTAL_LOSS = 0.30507901310920715
+[2023-01-24 11:44:36][fair_training.py][line:95][INFO] Epoch=[58/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.030015161260962486, DIS_LOSS = 0.6281545162200928, TOTAL_LOSS = 0.28127697110176086
+[2023-01-24 11:44:37][fair_training.py][line:134][INFO] Epoch=[58/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6146; 0.6343; 0.6251; 0.6041; 0.627
+[2023-01-24 11:44:37][fair_training.py][line:198][INFO] current prior optimizer lr=2.2185312344622644e-06
+[2023-01-24 11:44:37][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:37][fair_training.py][line:95][INFO] Epoch=[59/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.09758021682500839, DIS_LOSS = 0.6087691187858582, TOTAL_LOSS = 0.34108787775039673
+[2023-01-24 11:44:37][fair_training.py][line:95][INFO] Epoch=[59/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.037984900176525116, DIS_LOSS = 0.6329134106636047, TOTAL_LOSS = 0.2911502718925476
+[2023-01-24 11:44:38][fair_training.py][line:95][INFO] Epoch=[59/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.12110447138547897, DIS_LOSS = 0.610120952129364, TOTAL_LOSS = 0.36515286564826965
+[2023-01-24 11:44:38][fair_training.py][line:95][INFO] Epoch=[59/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.05429554358124733, DIS_LOSS = 0.6151649355888367, TOTAL_LOSS = 0.3003615140914917
+[2023-01-24 11:44:38][fair_training.py][line:95][INFO] Epoch=[59/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.18542705476284027, DIS_LOSS = 0.601032555103302, TOTAL_LOSS = 0.4258400797843933
+[2023-01-24 11:44:39][fair_training.py][line:134][INFO] Epoch=[59/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6088; 0.6356; 0.614; 0.6137; 0.5999
+[2023-01-24 11:44:39][fair_training.py][line:198][INFO] current prior optimizer lr=1.996678111016038e-06
+[2023-01-24 11:44:39][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:39][fair_training.py][line:261][INFO] The training time for one epoch is: 1.999711036682129 seconds
+[2023-01-24 11:44:46][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [58] is: 0.9198173147359137
+[2023-01-24 11:44:46][fair_training.py][line:95][INFO] Epoch=[60/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.019511103630065918, DIS_LOSS = 0.6186972260475159, TOTAL_LOSS = 0.2669900059700012
+[2023-01-24 11:44:46][fair_training.py][line:95][INFO] Epoch=[60/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.12019360065460205, DIS_LOSS = 0.6465750932693481, TOTAL_LOSS = 0.3788236379623413
+[2023-01-24 11:44:47][fair_training.py][line:95][INFO] Epoch=[60/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.12479107081890106, DIS_LOSS = 0.6134465336799622, TOTAL_LOSS = 0.3701696991920471
+[2023-01-24 11:44:47][fair_training.py][line:95][INFO] Epoch=[60/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.030395030975341797, DIS_LOSS = 0.6267882585525513, TOTAL_LOSS = 0.28111034631729126
+[2023-01-24 11:44:47][fair_training.py][line:95][INFO] Epoch=[60/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.025722965598106384, DIS_LOSS = 0.619672954082489, TOTAL_LOSS = 0.27359214425086975
+[2023-01-24 11:44:48][fair_training.py][line:134][INFO] Epoch=[60/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.615; 0.6448; 0.6136; 0.6255; 0.6204
+[2023-01-24 11:44:48][fair_training.py][line:198][INFO] current prior optimizer lr=1.7970102999144342e-06
+[2023-01-24 11:44:48][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:48][fair_training.py][line:95][INFO] Epoch=[61/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.022503547370433807, DIS_LOSS = 0.6133016347885132, TOTAL_LOSS = 0.2678242027759552
+[2023-01-24 11:44:48][fair_training.py][line:95][INFO] Epoch=[61/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.13192471861839294, DIS_LOSS = 0.6255136132240295, TOTAL_LOSS = 0.3821301758289337
+[2023-01-24 11:44:49][fair_training.py][line:95][INFO] Epoch=[61/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.13604885339736938, DIS_LOSS = 0.6138120889663696, TOTAL_LOSS = 0.3815736770629883
+[2023-01-24 11:44:49][fair_training.py][line:95][INFO] Epoch=[61/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.01786128431558609, DIS_LOSS = 0.6167058944702148, TOTAL_LOSS = 0.26454365253448486
+[2023-01-24 11:44:49][fair_training.py][line:95][INFO] Epoch=[61/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.15112008154392242, DIS_LOSS = 0.6070666909217834, TOTAL_LOSS = 0.3939467668533325
+[2023-01-24 11:44:50][fair_training.py][line:134][INFO] Epoch=[61/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6125; 0.625; 0.6158; 0.6135; 0.6046
+[2023-01-24 11:44:50][fair_training.py][line:198][INFO] current prior optimizer lr=1.6173092699229909e-06
+[2023-01-24 11:44:50][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:50][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9720220565795898 seconds
+[2023-01-24 11:44:56][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [60] is: 0.9197276165702412
+[2023-01-24 11:44:56][fair_training.py][line:95][INFO] Epoch=[62/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.016805825755000114, DIS_LOSS = 0.6100544333457947, TOTAL_LOSS = 0.26082760095596313
+[2023-01-24 11:44:57][fair_training.py][line:95][INFO] Epoch=[62/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.10323721170425415, DIS_LOSS = 0.624434232711792, TOTAL_LOSS = 0.353010892868042
+[2023-01-24 11:44:57][fair_training.py][line:95][INFO] Epoch=[62/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.22696515917778015, DIS_LOSS = 0.6234030723571777, TOTAL_LOSS = 0.4763264060020447
+[2023-01-24 11:44:57][fair_training.py][line:95][INFO] Epoch=[62/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.023086166009306908, DIS_LOSS = 0.6257176995277405, TOTAL_LOSS = 0.27337324619293213
+[2023-01-24 11:44:58][fair_training.py][line:95][INFO] Epoch=[62/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.06027448549866676, DIS_LOSS = 0.620750367641449, TOTAL_LOSS = 0.3085746467113495
+[2023-01-24 11:44:58][fair_training.py][line:134][INFO] Epoch=[62/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6104; 0.6239; 0.624; 0.6214; 0.6235
+[2023-01-24 11:44:58][fair_training.py][line:198][INFO] current prior optimizer lr=1.4555783429306917e-06
+[2023-01-24 11:44:58][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:44:58][fair_training.py][line:95][INFO] Epoch=[63/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.022205429151654243, DIS_LOSS = 0.6106001138687134, TOTAL_LOSS = 0.26644548773765564
+[2023-01-24 11:44:59][fair_training.py][line:95][INFO] Epoch=[63/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.16398487985134125, DIS_LOSS = 0.6220069527626038, TOTAL_LOSS = 0.41278767585754395
+[2023-01-24 11:44:59][fair_training.py][line:95][INFO] Epoch=[63/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.17016884684562683, DIS_LOSS = 0.6117989420890808, TOTAL_LOSS = 0.4148884415626526
+[2023-01-24 11:44:59][fair_training.py][line:95][INFO] Epoch=[63/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.10239952057600021, DIS_LOSS = 0.6068305373191833, TOTAL_LOSS = 0.3451317250728607
+[2023-01-24 11:45:00][fair_training.py][line:95][INFO] Epoch=[63/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.05510680377483368, DIS_LOSS = 0.6266206502914429, TOTAL_LOSS = 0.305755078792572
+[2023-01-24 11:45:00][fair_training.py][line:134][INFO] Epoch=[63/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6136; 0.6215; 0.611; 0.6087; 0.6264
+[2023-01-24 11:45:00][fair_training.py][line:198][INFO] current prior optimizer lr=1.3100205086376225e-06
+[2023-01-24 11:45:00][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:00][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9766569137573242 seconds
+[2023-01-24 11:45:07][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [62] is: 0.9193239748247148
+[2023-01-24 11:45:07][fair_training.py][line:95][INFO] Epoch=[64/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.13354060053825378, DIS_LOSS = 0.5992112159729004, TOTAL_LOSS = 0.3732250928878784
+[2023-01-24 11:45:07][fair_training.py][line:95][INFO] Epoch=[64/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.119878850877285, DIS_LOSS = 0.6242668032646179, TOTAL_LOSS = 0.3695855736732483
+[2023-01-24 11:45:08][fair_training.py][line:95][INFO] Epoch=[64/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.06921608746051788, DIS_LOSS = 0.6249714493751526, TOTAL_LOSS = 0.3192046880722046
+[2023-01-24 11:45:08][fair_training.py][line:95][INFO] Epoch=[64/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.12536554038524628, DIS_LOSS = 0.6175232529640198, TOTAL_LOSS = 0.37237483263015747
+[2023-01-24 11:45:08][fair_training.py][line:95][INFO] Epoch=[64/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.11888974159955978, DIS_LOSS = 0.6067242622375488, TOTAL_LOSS = 0.36157944798469543
+[2023-01-24 11:45:09][fair_training.py][line:134][INFO] Epoch=[64/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.5972; 0.6275; 0.6275; 0.6151; 0.6081
+[2023-01-24 11:45:09][fair_training.py][line:198][INFO] current prior optimizer lr=1.1790184577738603e-06
+[2023-01-24 11:45:09][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:09][fair_training.py][line:95][INFO] Epoch=[65/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.10424123704433441, DIS_LOSS = 0.602785050868988, TOTAL_LOSS = 0.3453552722930908
+[2023-01-24 11:45:09][fair_training.py][line:95][INFO] Epoch=[65/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.11989320814609528, DIS_LOSS = 0.6237162351608276, TOTAL_LOSS = 0.3693796992301941
+[2023-01-24 11:45:10][fair_training.py][line:95][INFO] Epoch=[65/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.08155917376279831, DIS_LOSS = 0.6199097037315369, TOTAL_LOSS = 0.3295230567455292
+[2023-01-24 11:45:10][fair_training.py][line:95][INFO] Epoch=[65/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.014760470949113369, DIS_LOSS = 0.6080149412155151, TOTAL_LOSS = 0.25796645879745483
+[2023-01-24 11:45:10][fair_training.py][line:95][INFO] Epoch=[65/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.0999056026339531, DIS_LOSS = 0.6068630218505859, TOTAL_LOSS = 0.34265080094337463
+[2023-01-24 11:45:11][fair_training.py][line:134][INFO] Epoch=[65/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6043; 0.6253; 0.6197; 0.608; 0.6096
+[2023-01-24 11:45:11][fair_training.py][line:198][INFO] current prior optimizer lr=1.0611166119964742e-06
+[2023-01-24 11:45:11][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:11][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9664020538330078 seconds
+[2023-01-24 11:45:17][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [64] is: 0.9197350914173805
+[2023-01-24 11:45:18][fair_training.py][line:95][INFO] Epoch=[66/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.020912878215312958, DIS_LOSS = 0.6132897138595581, TOTAL_LOSS = 0.2662287652492523
+[2023-01-24 11:45:18][fair_training.py][line:95][INFO] Epoch=[66/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.12788799405097961, DIS_LOSS = 0.6168074607849121, TOTAL_LOSS = 0.374610960483551
+[2023-01-24 11:45:18][fair_training.py][line:95][INFO] Epoch=[66/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.13322292268276215, DIS_LOSS = 0.6206285953521729, TOTAL_LOSS = 0.3814743757247925
+[2023-01-24 11:45:19][fair_training.py][line:95][INFO] Epoch=[66/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.010881008580327034, DIS_LOSS = 0.6133905649185181, TOTAL_LOSS = 0.2562372386455536
+[2023-01-24 11:45:19][fair_training.py][line:95][INFO] Epoch=[66/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.022075999528169632, DIS_LOSS = 0.6150904893875122, TOTAL_LOSS = 0.2681122124195099
+[2023-01-24 11:45:19][fair_training.py][line:134][INFO] Epoch=[66/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6151; 0.6154; 0.6198; 0.6099; 0.6132
+[2023-01-24 11:45:19][fair_training.py][line:198][INFO] current prior optimizer lr=9.550049507968269e-07
+[2023-01-24 11:45:19][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:20][fair_training.py][line:95][INFO] Epoch=[67/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.015957076102495193, DIS_LOSS = 0.6108795404434204, TOTAL_LOSS = 0.2603088915348053
+[2023-01-24 11:45:20][fair_training.py][line:95][INFO] Epoch=[67/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.05620495229959488, DIS_LOSS = 0.6292034983634949, TOTAL_LOSS = 0.30788636207580566
+[2023-01-24 11:45:20][fair_training.py][line:95][INFO] Epoch=[67/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.12043694406747818, DIS_LOSS = 0.6269713044166565, TOTAL_LOSS = 0.3712254762649536
+[2023-01-24 11:45:21][fair_training.py][line:95][INFO] Epoch=[67/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.022640997543931007, DIS_LOSS = 0.6183921098709106, TOTAL_LOSS = 0.26999783515930176
+[2023-01-24 11:45:21][fair_training.py][line:95][INFO] Epoch=[67/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.06761130690574646, DIS_LOSS = 0.6116572618484497, TOTAL_LOSS = 0.3122742176055908
+[2023-01-24 11:45:21][fair_training.py][line:134][INFO] Epoch=[67/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6108; 0.6324; 0.6332; 0.6181; 0.613
+[2023-01-24 11:45:21][fair_training.py][line:198][INFO] current prior optimizer lr=8.595044557171442e-07
+[2023-01-24 11:45:21][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:21][fair_training.py][line:261][INFO] The training time for one epoch is: 1.973238229751587 seconds
+[2023-01-24 11:45:28][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [66] is: 0.9196379184045687
+[2023-01-24 11:45:28][fair_training.py][line:95][INFO] Epoch=[68/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.018808333203196526, DIS_LOSS = 0.6131382584571838, TOTAL_LOSS = 0.26406362652778625
+[2023-01-24 11:45:29][fair_training.py][line:95][INFO] Epoch=[68/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.05208791419863701, DIS_LOSS = 0.6358033418655396, TOTAL_LOSS = 0.30640923976898193
+[2023-01-24 11:45:29][fair_training.py][line:95][INFO] Epoch=[68/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.23878616094589233, DIS_LOSS = 0.6345856785774231, TOTAL_LOSS = 0.49262043833732605
+[2023-01-24 11:45:29][fair_training.py][line:95][INFO] Epoch=[68/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.11135628074407578, DIS_LOSS = 0.608530580997467, TOTAL_LOSS = 0.3547685146331787
+[2023-01-24 11:45:30][fair_training.py][line:95][INFO] Epoch=[68/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.05840187519788742, DIS_LOSS = 0.6292247176170349, TOTAL_LOSS = 0.3100917637348175
+[2023-01-24 11:45:30][fair_training.py][line:134][INFO] Epoch=[68/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6118; 0.6342; 0.6361; 0.6056; 0.6291
+[2023-01-24 11:45:30][fair_training.py][line:198][INFO] current prior optimizer lr=7.735540101454298e-07
+[2023-01-24 11:45:30][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:30][fair_training.py][line:95][INFO] Epoch=[69/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.022250624373555183, DIS_LOSS = 0.6177033185958862, TOTAL_LOSS = 0.2693319618701935
+[2023-01-24 11:45:31][fair_training.py][line:95][INFO] Epoch=[69/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.11049215495586395, DIS_LOSS = 0.6128644943237305, TOTAL_LOSS = 0.35563796758651733
+[2023-01-24 11:45:31][fair_training.py][line:95][INFO] Epoch=[69/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.1370607614517212, DIS_LOSS = 0.615563690662384, TOTAL_LOSS = 0.3832862377166748
+[2023-01-24 11:45:31][fair_training.py][line:95][INFO] Epoch=[69/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.08906693011522293, DIS_LOSS = 0.6116777658462524, TOTAL_LOSS = 0.3337380290031433
+[2023-01-24 11:45:32][fair_training.py][line:95][INFO] Epoch=[69/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.023050988093018532, DIS_LOSS = 0.6280191540718079, TOTAL_LOSS = 0.27425867319107056
+[2023-01-24 11:45:32][fair_training.py][line:134][INFO] Epoch=[69/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6189; 0.6183; 0.6189; 0.6111; 0.6259
+[2023-01-24 11:45:32][fair_training.py][line:198][INFO] current prior optimizer lr=6.961986091308869e-07
+[2023-01-24 11:45:32][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:32][fair_training.py][line:261][INFO] The training time for one epoch is: 1.976511001586914 seconds
+[2023-01-24 11:45:39][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [68] is: 0.9196827674874049
+[2023-01-24 11:45:39][fair_training.py][line:95][INFO] Epoch=[70/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.015338183380663395, DIS_LOSS = 0.6085110306739807, TOTAL_LOSS = 0.2587426006793976
+[2023-01-24 11:45:39][fair_training.py][line:95][INFO] Epoch=[70/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.031375106424093246, DIS_LOSS = 0.631064772605896, TOTAL_LOSS = 0.28380101919174194
+[2023-01-24 11:45:40][fair_training.py][line:95][INFO] Epoch=[70/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.05155827850103378, DIS_LOSS = 0.6265274882316589, TOTAL_LOSS = 0.3021692931652069
+[2023-01-24 11:45:40][fair_training.py][line:95][INFO] Epoch=[70/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.01743839494884014, DIS_LOSS = 0.6117250323295593, TOTAL_LOSS = 0.26212841272354126
+[2023-01-24 11:45:40][fair_training.py][line:95][INFO] Epoch=[70/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.15290766954421997, DIS_LOSS = 0.6083685755729675, TOTAL_LOSS = 0.39625510573387146
+[2023-01-24 11:45:41][fair_training.py][line:134][INFO] Epoch=[70/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6101; 0.6342; 0.6266; 0.608; 0.6126
+[2023-01-24 11:45:41][fair_training.py][line:198][INFO] current prior optimizer lr=6.265787482177982e-07
+[2023-01-24 11:45:41][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:41][fair_training.py][line:95][INFO] Epoch=[71/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.026313096284866333, DIS_LOSS = 0.6137609481811523, TOTAL_LOSS = 0.27181747555732727
+[2023-01-24 11:45:41][fair_training.py][line:95][INFO] Epoch=[71/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.12798120081424713, DIS_LOSS = 0.6307657957077026, TOTAL_LOSS = 0.3802875280380249
+[2023-01-24 11:45:42][fair_training.py][line:95][INFO] Epoch=[71/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.09973089396953583, DIS_LOSS = 0.6310974955558777, TOTAL_LOSS = 0.35216987133026123
+[2023-01-24 11:45:42][fair_training.py][line:95][INFO] Epoch=[71/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.07093042880296707, DIS_LOSS = 0.6079827547073364, TOTAL_LOSS = 0.3141235411167145
+[2023-01-24 11:45:42][fair_training.py][line:95][INFO] Epoch=[71/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.035205207765102386, DIS_LOSS = 0.628995954990387, TOTAL_LOSS = 0.28680360317230225
+[2023-01-24 11:45:43][fair_training.py][line:134][INFO] Epoch=[71/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.617; 0.6296; 0.636; 0.612; 0.625
+[2023-01-24 11:45:43][fair_training.py][line:198][INFO] current prior optimizer lr=5.639208733960183e-07
+[2023-01-24 11:45:43][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:43][fair_training.py][line:261][INFO] The training time for one epoch is: 1.969170093536377 seconds
+[2023-01-24 11:45:49][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [70] is: 0.9195781196274536
+[2023-01-24 11:45:50][fair_training.py][line:95][INFO] Epoch=[72/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.027317265048623085, DIS_LOSS = 0.617523193359375, TOTAL_LOSS = 0.27432653307914734
+[2023-01-24 11:45:50][fair_training.py][line:95][INFO] Epoch=[72/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.2696669101715088, DIS_LOSS = 0.6037036776542664, TOTAL_LOSS = 0.5111483931541443
+[2023-01-24 11:45:50][fair_training.py][line:95][INFO] Epoch=[72/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.1643974334001541, DIS_LOSS = 0.6115776896476746, TOTAL_LOSS = 0.4090285301208496
+[2023-01-24 11:45:51][fair_training.py][line:95][INFO] Epoch=[72/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.08104774355888367, DIS_LOSS = 0.611552894115448, TOTAL_LOSS = 0.32566890120506287
+[2023-01-24 11:45:51][fair_training.py][line:95][INFO] Epoch=[72/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.0321558341383934, DIS_LOSS = 0.6260207295417786, TOTAL_LOSS = 0.2825641334056854
+[2023-01-24 11:45:51][fair_training.py][line:134][INFO] Epoch=[72/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.619; 0.6039; 0.6103; 0.611; 0.628
+[2023-01-24 11:45:51][fair_training.py][line:198][INFO] current prior optimizer lr=5.075287860564165e-07
+[2023-01-24 11:45:51][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:52][fair_training.py][line:95][INFO] Epoch=[73/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.0263984352350235, DIS_LOSS = 0.6137335896492004, TOTAL_LOSS = 0.27189189195632935
+[2023-01-24 11:45:52][fair_training.py][line:95][INFO] Epoch=[73/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.08212017267942429, DIS_LOSS = 0.6401611566543579, TOTAL_LOSS = 0.338184654712677
+[2023-01-24 11:45:52][fair_training.py][line:95][INFO] Epoch=[73/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.02190735936164856, DIS_LOSS = 0.6240929365158081, TOTAL_LOSS = 0.27154451608657837
+[2023-01-24 11:45:52][fair_training.py][line:95][INFO] Epoch=[73/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.014427334070205688, DIS_LOSS = 0.6144312620162964, TOTAL_LOSS = 0.2601998448371887
+[2023-01-24 11:45:53][fair_training.py][line:95][INFO] Epoch=[73/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.1700623780488968, DIS_LOSS = 0.5999422073364258, TOTAL_LOSS = 0.4100392460823059
+[2023-01-24 11:45:53][fair_training.py][line:134][INFO] Epoch=[73/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6181; 0.6389; 0.6213; 0.6118; 0.6057
+[2023-01-24 11:45:53][fair_training.py][line:198][INFO] current prior optimizer lr=4.567759074507748e-07
+[2023-01-24 11:45:53][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:45:53][fair_training.py][line:261][INFO] The training time for one epoch is: 1.974745750427246 seconds
+[2023-01-24 11:46:00][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [72] is: 0.9195257956974779
+[2023-01-24 11:46:00][fair_training.py][line:95][INFO] Epoch=[74/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.019713060930371284, DIS_LOSS = 0.6102883219718933, TOTAL_LOSS = 0.2638283967971802
+[2023-01-24 11:46:00][fair_training.py][line:95][INFO] Epoch=[74/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.11200268566608429, DIS_LOSS = 0.6206135749816895, TOTAL_LOSS = 0.3602481186389923
+[2023-01-24 11:46:01][fair_training.py][line:95][INFO] Epoch=[74/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.15698912739753723, DIS_LOSS = 0.6411139965057373, TOTAL_LOSS = 0.4134347438812256
+[2023-01-24 11:46:01][fair_training.py][line:95][INFO] Epoch=[74/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.021031454205513, DIS_LOSS = 0.6098896861076355, TOTAL_LOSS = 0.26498734951019287
+[2023-01-24 11:46:01][fair_training.py][line:95][INFO] Epoch=[74/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.12461452931165695, DIS_LOSS = 0.612448513507843, TOTAL_LOSS = 0.36959394812583923
+[2023-01-24 11:46:02][fair_training.py][line:134][INFO] Epoch=[74/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6099; 0.6234; 0.6423; 0.6083; 0.6148
+[2023-01-24 11:46:02][fair_training.py][line:198][INFO] current prior optimizer lr=4.1109831670569735e-07
+[2023-01-24 11:46:02][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:46:02][fair_training.py][line:95][INFO] Epoch=[75/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.038305118680000305, DIS_LOSS = 0.620965838432312, TOTAL_LOSS = 0.28669145703315735
+[2023-01-24 11:46:02][fair_training.py][line:95][INFO] Epoch=[75/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.17693187296390533, DIS_LOSS = 0.6184083223342896, TOTAL_LOSS = 0.42429518699645996
+[2023-01-24 11:46:03][fair_training.py][line:95][INFO] Epoch=[75/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.04771125316619873, DIS_LOSS = 0.636824905872345, TOTAL_LOSS = 0.30244120955467224
+[2023-01-24 11:46:03][fair_training.py][line:95][INFO] Epoch=[75/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.05835025757551193, DIS_LOSS = 0.6166056394577026, TOTAL_LOSS = 0.30499252676963806
+[2023-01-24 11:46:03][fair_training.py][line:95][INFO] Epoch=[75/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.029229406267404556, DIS_LOSS = 0.6197160482406616, TOTAL_LOSS = 0.2771158218383789
+[2023-01-24 11:46:04][fair_training.py][line:134][INFO] Epoch=[75/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6211; 0.6177; 0.6351; 0.6137; 0.6195
+[2023-01-24 11:46:04][fair_training.py][line:198][INFO] current prior optimizer lr=3.699884850351276e-07
+[2023-01-24 11:46:04][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:46:04][fair_training.py][line:261][INFO] The training time for one epoch is: 1.9796721935272217 seconds
+[2023-01-24 11:46:10][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [74] is: 0.9200789343857918
+[2023-01-24 11:46:11][fair_training.py][line:95][INFO] Epoch=[76/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.11049074679613113, DIS_LOSS = 0.6016204953193665, TOTAL_LOSS = 0.3511389493942261
+[2023-01-24 11:46:11][fair_training.py][line:95][INFO] Epoch=[76/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.046887271106243134, DIS_LOSS = 0.6360147595405579, TOTAL_LOSS = 0.30129319429397583
+[2023-01-24 11:46:11][fair_training.py][line:95][INFO] Epoch=[76/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.07620912045240402, DIS_LOSS = 0.6320303082466125, TOTAL_LOSS = 0.32902124524116516
+[2023-01-24 11:46:12][fair_training.py][line:95][INFO] Epoch=[76/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.016907766461372375, DIS_LOSS = 0.6174747943878174, TOTAL_LOSS = 0.26389768719673157
+[2023-01-24 11:46:12][fair_training.py][line:95][INFO] Epoch=[76/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.3400805592536926, DIS_LOSS = 0.5997316241264343, TOTAL_LOSS = 0.5799732208251953
+[2023-01-24 11:46:12][fair_training.py][line:134][INFO] Epoch=[76/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6038; 0.6395; 0.6287; 0.6141; 0.5987
+[2023-01-24 11:46:12][fair_training.py][line:198][INFO] current prior optimizer lr=3.329896365316149e-07
+[2023-01-24 11:46:12][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:46:13][fair_training.py][line:95][INFO] Epoch=[77/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.023030705749988556, DIS_LOSS = 0.609870433807373, TOTAL_LOSS = 0.2669788897037506
+[2023-01-24 11:46:13][fair_training.py][line:95][INFO] Epoch=[77/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.09702082723379135, DIS_LOSS = 0.6266900897026062, TOTAL_LOSS = 0.34769687056541443
+[2023-01-24 11:46:13][fair_training.py][line:95][INFO] Epoch=[77/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.0323450043797493, DIS_LOSS = 0.6318946480751038, TOTAL_LOSS = 0.28510287404060364
+[2023-01-24 11:46:14][fair_training.py][line:95][INFO] Epoch=[77/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.0827675610780716, DIS_LOSS = 0.6076012253761292, TOTAL_LOSS = 0.325808048248291
+[2023-01-24 11:46:14][fair_training.py][line:95][INFO] Epoch=[77/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.16226044297218323, DIS_LOSS = 0.6016150712966919, TOTAL_LOSS = 0.40290647745132446
+[2023-01-24 11:46:14][fair_training.py][line:134][INFO] Epoch=[77/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.612; 0.6209; 0.6334; 0.6089; 0.6063
+[2023-01-24 11:46:14][fair_training.py][line:198][INFO] current prior optimizer lr=2.9969067287845343e-07
+[2023-01-24 11:46:14][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:46:14][fair_training.py][line:261][INFO] The training time for one epoch is: 1.962569236755371 seconds
+[2023-01-24 11:46:21][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [76] is: 0.9197051920288231
+[2023-01-24 11:46:21][fair_training.py][line:95][INFO] Epoch=[78/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.0174858421087265, DIS_LOSS = 0.6057561039924622, TOTAL_LOSS = 0.25978827476501465
+[2023-01-24 11:46:22][fair_training.py][line:95][INFO] Epoch=[78/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.20131728053092957, DIS_LOSS = 0.6086775064468384, TOTAL_LOSS = 0.44478827714920044
+[2023-01-24 11:46:22][fair_training.py][line:95][INFO] Epoch=[78/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.18634271621704102, DIS_LOSS = 0.6156036853790283, TOTAL_LOSS = 0.4325841963291168
+[2023-01-24 11:46:22][fair_training.py][line:95][INFO] Epoch=[78/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.023698866367340088, DIS_LOSS = 0.6189005374908447, TOTAL_LOSS = 0.271259069442749
+[2023-01-24 11:46:23][fair_training.py][line:95][INFO] Epoch=[78/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.030104678124189377, DIS_LOSS = 0.6221936345100403, TOTAL_LOSS = 0.27898213267326355
+[2023-01-24 11:46:23][fair_training.py][line:134][INFO] Epoch=[78/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6101; 0.6073; 0.6146; 0.6174; 0.6222
+[2023-01-24 11:46:23][fair_training.py][line:198][INFO] current prior optimizer lr=2.697216055906081e-07
+[2023-01-24 11:46:23][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:46:23][fair_training.py][line:95][INFO] Epoch=[79/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.00891881249845028, DIS_LOSS = 0.6076165437698364, TOTAL_LOSS = 0.2519654333591461
+[2023-01-24 11:46:24][fair_training.py][line:95][INFO] Epoch=[79/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.03583722561597824, DIS_LOSS = 0.641902506351471, TOTAL_LOSS = 0.29259824752807617
+[2023-01-24 11:46:24][fair_training.py][line:95][INFO] Epoch=[79/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.09045659750699997, DIS_LOSS = 0.6263649463653564, TOTAL_LOSS = 0.34100258350372314
+[2023-01-24 11:46:24][fair_training.py][line:95][INFO] Epoch=[79/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.023511657491326332, DIS_LOSS = 0.6142634153366089, TOTAL_LOSS = 0.26921701431274414
+[2023-01-24 11:46:25][fair_training.py][line:95][INFO] Epoch=[79/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.11509523540735245, DIS_LOSS = 0.6080740094184875, TOTAL_LOSS = 0.3583248555660248
+[2023-01-24 11:46:25][fair_training.py][line:134][INFO] Epoch=[79/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6067; 0.6417; 0.6297; 0.6121; 0.6064
+[2023-01-24 11:46:25][fair_training.py][line:198][INFO] current prior optimizer lr=2.427494450315473e-07
+[2023-01-24 11:46:25][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:46:25][fair_training.py][line:261][INFO] The training time for one epoch is: 2.0046379566192627 seconds
+[2023-01-24 11:46:32][fair_training.py][line:267][INFO] The overall accuracy of EPOCH [78] is: 0.9196229687102899
+[2023-01-24 11:46:32][fair_training.py][line:95][INFO] Epoch=[80/80], Inner Loop Task=[1/5], Inner Step=[10/10], CLS_LOSS = 0.015876971185207367, DIS_LOSS = 0.6144300103187561, TOTAL_LOSS = 0.2616489827632904
+[2023-01-24 11:46:33][fair_training.py][line:95][INFO] Epoch=[80/80], Inner Loop Task=[2/5], Inner Step=[10/10], CLS_LOSS = 0.06386323273181915, DIS_LOSS = 0.633650004863739, TOTAL_LOSS = 0.3173232674598694
+[2023-01-24 11:46:33][fair_training.py][line:95][INFO] Epoch=[80/80], Inner Loop Task=[3/5], Inner Step=[10/10], CLS_LOSS = 0.13977593183517456, DIS_LOSS = 0.6049080491065979, TOTAL_LOSS = 0.38173913955688477
+[2023-01-24 11:46:33][fair_training.py][line:95][INFO] Epoch=[80/80], Inner Loop Task=[4/5], Inner Step=[10/10], CLS_LOSS = 0.07361826300621033, DIS_LOSS = 0.6065458059310913, TOTAL_LOSS = 0.31623658537864685
+[2023-01-24 11:46:34][fair_training.py][line:95][INFO] Epoch=[80/80], Inner Loop Task=[5/5], Inner Step=[10/10], CLS_LOSS = 0.14803028106689453, DIS_LOSS = 0.6068588495254517, TOTAL_LOSS = 0.39077383279800415
+[2023-01-24 11:46:34][fair_training.py][line:134][INFO] Epoch=[80/80], Outer Loop Step=[5/5], KLD for EACH Qa: 0.6102; 0.6325; 0.6072; 0.6063; 0.6058
+[2023-01-24 11:46:34][fair_training.py][line:198][INFO] current prior optimizer lr=2.1847450052839256e-07
+[2023-01-24 11:46:34][fair_training.py][line:200][INFO] current post optimizer lr=0.08000000000000002
+[2023-01-24 11:46:34][all_train.py][line:113][INFO] =============== Inference Process =============
+[2023-01-24 11:46:41][all_train.py][line:126][INFO] =============== Post Process =============
+[2023-01-24 11:46:41][postprocessing.py][line:177][INFO] =============== Accuracy =============
+[2023-01-24 11:46:41][postprocessing.py][line:179][INFO] [Accuracy] The overall accuracy is: 0.9197126668759624
+[2023-01-24 11:46:41][postprocessing.py][line:182][INFO] =============== Sufficient Gap =============
+[2023-01-24 11:46:41][postprocessing.py][line:156][INFO] [SufGAP] The average sufficiency gap : 0.05720350745570732
+[2023-01-24 11:46:41][postprocessing.py][line:184][INFO] [SufGAP] The overall sufficiency gap is: 0.05720350745570732

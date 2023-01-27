@@ -1,0 +1,17 @@
+[2023-01-24 16:50:24][all_train.py][line:50][INFO] =============== DATA LOADING =============
+[2023-01-24 16:50:24][dataset.py][line:124][INFO] DATA LOADING...
+[2023-01-24 16:50:24][dataset.py][line:125][INFO] DATASET: tadpole
+[2023-01-24 16:50:24][dataset.py][line:150][INFO] Tadpole dataset Preprocessing ...
+[2023-01-24 16:50:36][dataset.py][line:168][INFO] Grouped Info: White                4781
+Black                 157
+Asian                  97
+More than one          36
+Unknown                12
+Am Indian/Alaskan       9
+Hawaiian/Other PI       5
+Name: PTRACCAT, dtype: int64
+[2023-01-24 16:50:53][dataset.py][line:178][INFO] Grouped Info after processing: 0    4781
+1     157
+2      97
+3      62
+Name: PTRACCAT, dtype: int64

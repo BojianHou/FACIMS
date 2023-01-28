@@ -22,47 +22,14 @@ from utils.loggers import TxtLogger, set_logger, set_npy
 from utils.common import seed_setup
 import torch.nn.functional as F  # added by Bojian
 
+from utils.common import get_init_dy, get_init_ly, get_train_w, get_val_w
+from utils.common import cross_entropy, loss_adjust_cross_entropy
+
 
 try:
     import wandb
 except Exception as e:
     pass
-
-
-# added by Bojian
-def loss_adjust_cross_entropy_cdt(logits, targets, params, group_size=1):
-    dy = params[0]
-    ly = params[1]
-    if group_size != 1:
-        new_dy = dy.repeat_interleave(group_size)
-        new_ly = ly.repeat_interleave(group_size)
-        x = logits*new_dy+new_ly
-    else:
-        x = logits*dy+ly
-    if len(params) == 3:
-        wy = params[2]
-        loss = F.cross_entropy(x, targets, weight=wy)
-    else:
-        loss = F.cross_entropy(x, targets)
-    return loss
-
-
-# added by Bojian
-def loss_adjust_cross_entropy(logits, targets, params, group_size=1):
-    dy = params[0]
-    ly = params[1]
-    if group_size != 1:
-        new_dy = dy.repeat_interleave(group_size)
-        new_ly = ly.repeat_interleave(group_size)
-        x = logits*F.sigmoid(new_dy)+new_ly
-    else:
-        x = logits*F.sigmoid(dy)+ly
-    if len(params) == 3:
-        wy = params[2]
-        loss = F.cross_entropy(x, targets, weight=wy)
-    else:
-        loss = F.cross_entropy(x, targets)
-    return loss
 
 
 def main(prm):
@@ -85,7 +52,19 @@ def main(prm):
 
     # dataloader
     logger.info("=============== DATA LOADING =============")
-    X_train, X_test, A_train, A_test, y_train, y_test = load_data(prm)
+    X_train, X_val, X_test, A_train, A_val, A_test, y_train, y_val, y_test = load_data(prm)
+
+    # added by Bojian
+    num_classes = np.unique(y_test)
+    dy = get_init_dy(prm.device, num_classes=num_classes)
+    ly = get_init_ly(prm.device, num_classes=num_classes)
+    w_train = get_train_w(prm.device, num_classes=num_classes)
+    class_num_val = []
+    for i in range(num_classes):
+        class_num_val.append(np.sum(y_test == i))
+    w_val = get_val_w(prm.device, class_num_val)
+
+    low_params = [dy, ly, w_train]
     
     # Data Decrease for toxic - mimic small data size situation on toxic dataset
     if prm.dataset == "toxic":
@@ -128,23 +107,17 @@ def main(prm):
     logger.info(prm)
 
     # Training Components
-    loss_criterion = nn.BCELoss()
+    # loss_criterion = nn.BCELoss()
+    low_loss_criterion = loss_adjust_cross_entropy()
+    up_loss_criterion = cross_entropy()
 
     # create the prior model
     prior_model = get_model(prm)
 
     # train
-    train(
-        prm,
-        prior_model,
-        loss_criterion,
-        X_train,
-        A_train,
-        y_train,
-        X_test,
-        A_test,
-        y_test,
-    )
+    # train( prm, prior_model, loss_criterion, X_train, A_train, y_train, X_test, A_test, y_test)
+    train(prm, prior_model, low_loss_criterion, up_loss_criterion,
+          X_train, A_train, y_train, X_test, A_test, y_test)
 
     # evaluation
     logger.info("=============== Inference Process =============")

@@ -147,7 +147,9 @@ def training_task_batches(
     list_of_post_optimizer,
     prior_model,
     prior_optimizer,
-    loss_criterion,
+    low_loss_criterion,  # added by Bojian
+    up_loss_criterion,  # added by Bojian
+    # loss_criterion,    # commented by Bojian
     data_batch,
     prm,
     epoch_id,
@@ -174,7 +176,7 @@ def training_task_batches(
         train_one_task(
             prior_model,
             posterior,
-            loss_criterion,
+            low_loss_criterion,
             posterior_opt,
             data,
             prm,
@@ -209,7 +211,11 @@ def update_meta_post(list_of_post_model, prior_model, ratio):
             list_of_post_model[i] = copy.deepcopy(prior_model)
 
 
-def train_ours(prm, prior_model, loss_criterion, X_train, A_train, y_train, X_test=None, A_test=None, y_test=None):
+def train_ours(prm, prior_model,
+               low_loss_criterion,  # added by Bojian
+               up_loss_criterion,   # added by Bojian
+               # loss_criterion,    # commented by Bojian
+               X_train, A_train, y_train, X_test=None, A_test=None, y_test=None):
     # prior model
     optimizer_prior = optim.Adagrad(prior_model.parameters(), lr=prm.lr_prior)
     # optimizer schedular
@@ -245,7 +251,9 @@ def train_ours(prm, prior_model, loss_criterion, X_train, A_train, y_train, X_te
                 list_optimizer_post,
                 prior_model,
                 optimizer_prior,
-                loss_criterion,
+                low_loss_criterion,  # added by Bojian
+                up_loss_criterion,  # added by Bojian
+                # loss_criterion,    # commented by Bojian
                 batch,
                 prm,
                 epoch_id,
@@ -286,7 +294,9 @@ def train_ours(prm, prior_model, loss_criterion, X_train, A_train, y_train, X_te
 def train(
     prm,
     prior_model,
-    loss_criterion,
+    low_loss_criterion,  # added by Bojian
+    up_loss_criterion,   # added by Bojian
+    # loss_criterion,    # commented by Bojian
     X_train,
     A_train,
     y_train,
@@ -322,8 +332,10 @@ def train(
 
     # training switch
     
-    train_ours(prm, prior_model, loss_criterion, X_train,
-                A_train, y_train, X_test, A_test, y_test)
+    # train_ours(prm, prior_model, loss_criterion, X_train,
+    #             A_train, y_train, X_test, A_test, y_test)
+    train_ours(prm, prior_model, low_loss_criterion, up_loss_criterion,
+               X_train, A_train, y_train, X_test, A_test, y_test)
     
 
     if prm.use_wandb:

@@ -186,18 +186,18 @@ def load_tadpole():
     X = X.to_numpy()
     X = StandardScaler().fit_transform(X)
     y = np.concatenate([np.zeros(len(df_MCI)), np.ones(len_AD)])
-    # X_rem, X_test, y_rem, y_test = \
-    #     train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
-    X_train, X_test, y_train, y_test, group_train, group_test = \
+    X_rem, X_test, y_rem, y_test, group_rem, group_test = \
         train_test_split(X, y, group, test_size=0.3, random_state=42, stratify=y)
+    X_train, X_val, y_train, y_val, group_train, group_val = \
+        train_test_split(X_rem, y_rem, group_rem, test_size=0.3, random_state=42, stratify=y_rem)
 
-    # num_train_samples, num_val_samples = [], []
+    # class_num_train, class_num_val = [], []
     # num_class = 2
     # for i in range(num_class):
-    #     num_train_samples.append(np.sum(y_train == i))
-    #     num_val_samples.append(np.sum(y_test == i))
+    #     class_num_train.append(np.sum(y_train == i))
+    #     class_num_val.append(np.sum(y_test == i))
 
-    return X_train, X_test, group_train, group_test, y_train, y_test
+    return X_train, X_val, X_test, group_train, group_val, group_test, y_train, y_val, y_test
 
 
 

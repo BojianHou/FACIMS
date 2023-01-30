@@ -3,7 +3,9 @@ from sklearn.metrics import accuracy_score, average_precision_score
 from sklearn.calibration import calibration_curve
 import logging
 from scipy import interpolate
+from scipy.special import softmax
 from data.hypers import CALI_PARAMS
+from sklearn.metrics import balanced_accuracy_score
 
 logger = logging.getLogger("fair")
 
@@ -26,8 +28,9 @@ def compute_accuracy(y, hat_y, bar=0.5, if_logger=False):
         )
         logger.info("predict y is: {}".format(hat_y))
 
-    y = np.where(y > bar, 1, 0)
-    hat_y = np.where(hat_y > bar, 1, 0)
+    # y = np.where(y > bar, 1, 0)
+    # hat_y = np.where(hat_y > bar, 1, 0)
+    hat_y = hat_y.argmax(1)
 
     if if_logger:
         logger.info(
@@ -123,6 +126,8 @@ def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
 
     groups_pred_true = np.zeros((num_A, n_bins))
     groups_pred_prob = np.zeros((num_A, n_bins))
+    y_hat = softmax(y_hat, axis=1)  # added by Bojian
+    y_hat = y_hat.max(1)  # added by Bojian
     all_prob_true, all_prob_pred = calibration_curve(y, y_hat, n_bins=n_bins)
     if all_prob_true.shape[0] != n_bins:
         all_prob_true = np.zeros(n_bins)
@@ -176,7 +181,9 @@ def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
 def result_show(y_test, predict, A_test, prm):
     logger.info("=============== Accuracy =============")
     accuracy = compute_accuracy(y_test, predict, prm.acc_bin)
+    b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
     logger.info("[Accuracy] The overall accuracy is: {}".format(accuracy))
+    logger.info("[Balanced Accuracy] The overall balanced accuracy is: {}".format(b_acc))
 
 
     logger.info("=============== Sufficient Gap =============")
@@ -191,10 +198,12 @@ def result_show(y_test, predict, A_test, prm):
 
 def result_wandb(y_test, predict, A_test, prm):
     accuracy = compute_accuracy(y_test, predict, prm.acc_bin, if_logger=False)
+    b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
     suf_gap_avg_score = standard_suf_gap_all(predict, y_test, A_test, prm, if_logger=False)
 
     wandb_dict = {
         "acc": accuracy,
+        "b_acc": b_acc,
         "suf_gap_avg": suf_gap_avg_score,
     }
     return wandb_dict

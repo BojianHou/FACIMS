@@ -16,6 +16,8 @@ import os
 import os.path as osp
 import random
 import time
+from utils.common import get_init_dy, get_init_ly, get_train_w, get_val_w
+from sklearn.metrics import balanced_accuracy_score
 
 
 logger = logging.getLogger("fair")
@@ -46,6 +48,7 @@ def train_one_task(
     prm,
     task_index,
     epoch_id,
+    low_params  # added by Bojian
 ):
     """
     :param prior_model: the prior_model (only one-model)
@@ -73,7 +76,7 @@ def train_one_task(
         for i_MC in range(n_MC):
             # Empirical Loss on current task:
             outputs = post_model(inputs)
-            avg_empiric_loss_curr = loss_criterion(outputs, targets)
+            avg_empiric_loss_curr = loss_criterion(outputs, targets, low_params)
             avg_empiric_loss = avg_empiric_loss + \
                 (1 / n_MC) * avg_empiric_loss_curr
         # end Monte-Carlo loop
@@ -147,6 +150,7 @@ def training_task_batches(
     list_of_post_optimizer,
     prior_model,
     prior_optimizer,
+    optimizer_hyper,  # added by Bojian
     low_loss_criterion,  # added by Bojian
     up_loss_criterion,  # added by Bojian
     # loss_criterion,    # commented by Bojian
@@ -155,6 +159,8 @@ def training_task_batches(
     epoch_id,
     optimizer_prior_schedular,
     list_optimizer_post_schedular,
+    optimizer_hyper_schedular,  # added by Bojian
+    low_params, up_params  # added by Bojian
 ):
     """
     :param list_of_post_model:
@@ -176,12 +182,13 @@ def training_task_batches(
         train_one_task(
             prior_model,
             posterior,
-            low_loss_criterion,
+            low_loss_criterion,  # added by Bojian
             posterior_opt,
             data,
             prm,
             task_index,
             epoch_id,
+            low_params  # added by Bojian
         )
 
         list_optimizer_post_schedular[task_index].step()
@@ -189,6 +196,7 @@ def training_task_batches(
     # Then updating prior distribution
     update_meta_prior(list_of_post_model, prior_model,
                       prior_optimizer, prm, epoch_id)
+
     if prm.dataset in ["adult"]:
         if epoch_id >= 60:
             optimizer_prior_schedular.step()
@@ -215,12 +223,33 @@ def train_ours(prm, prior_model,
                low_loss_criterion,  # added by Bojian
                up_loss_criterion,   # added by Bojian
                # loss_criterion,    # commented by Bojian
-               X_train, A_train, y_train, X_test=None, A_test=None, y_test=None):
+               X_train, A_train, y_train,
+               X_val, A_val, y_val, # added by Bojian
+               X_test=None, A_test=None, y_test=None):
     # prior model
     optimizer_prior = optim.Adagrad(prior_model.parameters(), lr=prm.lr_prior)
     # optimizer schedular
     optimizer_prior_schedular = PriorExponentialLR(
         optimizer_prior, prm.training_epoch)
+
+    # optimizer for hyperparameter, added by Bojian
+    num_classes = len(np.unique(y_train))
+    dy = get_init_dy(prm.device, num_classes=num_classes)  # multiplicative adjustments to the logit
+    ly = get_init_ly(prm.device, num_classes=num_classes)  # additive adjustments to the logit
+    w_train = get_train_w(prm.device, num_classes=num_classes)  # weight for cross entropy for different class
+    class_num_val = []
+    for i in range(num_classes):
+        class_num_val.append(np.sum(y_test == i))
+    w_val = get_val_w(prm.device, class_num_val)  # weight for cross entropy for different class
+
+    low_params = [dy, ly, w_train]
+    up_params = [dy, ly, w_val]
+
+    optimizer_hyper = optim.SGD(params=[{'params': dy}, {'params': ly}],
+                              lr=0.01, momentum=0.9, weight_decay=5e-4)
+    # optimizer schedular
+    optimizer_hyper_schedular = PriorExponentialLR(
+        optimizer_hyper, prm.training_epoch)
 
     # post model
     model_num = prm.N_subtask
@@ -251,6 +280,7 @@ def train_ours(prm, prior_model,
                 list_optimizer_post,
                 prior_model,
                 optimizer_prior,
+                optimizer_hyper,  # added by Bojian
                 low_loss_criterion,  # added by Bojian
                 up_loss_criterion,  # added by Bojian
                 # loss_criterion,    # commented by Bojian
@@ -259,6 +289,8 @@ def train_ours(prm, prior_model,
                 epoch_id,
                 optimizer_prior_schedular,
                 list_optimizer_post_schedular,
+                optimizer_hyper_schedular,
+                low_params, up_params
             )
 
 
@@ -272,9 +304,14 @@ def train_ours(prm, prior_model,
             )
             predict = inference(prior_model, X_test, prm)
             accuracy = compute_accuracy(y_test, predict, 0.5)
+            b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
             logger.info(
                 "The overall accuracy of EPOCH [{}] is: {}".format(
                     epoch_id, accuracy)
+            )
+            logger.info(
+                "The overall balanced accuracy of EPOCH [{}] is: {}".format(
+                    epoch_id, b_acc)
             )
             if prm.use_wandb:
                 wandb_dict = result_wandb(y_test, predict, A_test, prm)
@@ -297,9 +334,8 @@ def train(
     low_loss_criterion,  # added by Bojian
     up_loss_criterion,   # added by Bojian
     # loss_criterion,    # commented by Bojian
-    X_train,
-    A_train,
-    y_train,
+    X_train, A_train, y_train,
+    X_val, A_val, y_val, # added by Bojian
     X_test=None,
     A_test=None,
     y_test=None,
@@ -323,7 +359,9 @@ def train(
     # initial test
     predict = inference(prior_model, X_test, prm)
     accuracy = compute_accuracy(y_test, predict, 0.5)
+    b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
     logger.info("The Initial overall accuracy is: {}".format(accuracy))
+    logger.info("The Initial overall balanced accuracy is: {}".format(b_acc))
     if prm.use_wandb:
         wandb_dict = result_wandb(y_test, predict, A_test, prm)
         wandb.log(wandb_dict)
@@ -335,7 +373,9 @@ def train(
     # train_ours(prm, prior_model, loss_criterion, X_train,
     #             A_train, y_train, X_test, A_test, y_test)
     train_ours(prm, prior_model, low_loss_criterion, up_loss_criterion,
-               X_train, A_train, y_train, X_test, A_test, y_test)
+               X_train, A_train, y_train,
+               X_val, A_val, y_val, # added by Bojian
+               X_test, A_test, y_test)
     
 
     if prm.use_wandb:

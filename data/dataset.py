@@ -617,7 +617,8 @@ def sample_batch_sen_idx(X, A, y, prm, s):
     # batch_x = torch.tensor(batch_x).cuda().float()
     # batch_y = torch.tensor(batch_y).cuda().float()
     batch_x = torch.tensor(batch_x).float().to(prm.device)
-    batch_y = torch.tensor(batch_y).float().to(prm.device)
+    # batch_y = torch.tensor(batch_y).float().to(prm.device)
+    batch_y = torch.LongTensor(batch_y).to(prm.device)
 
     return batch_x, batch_y
 

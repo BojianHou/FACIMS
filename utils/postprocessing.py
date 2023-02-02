@@ -13,7 +13,7 @@ logger = logging.getLogger("fair")
 # Post Processing and Calculation
 # ----------------------------------------------------------------------------------------------
 # acc
-def compute_accuracy(y, hat_y, bar=0.5, if_logger=False):
+def compute_accuracy(y, hat_y, bar=0.5, output_dim=2, if_logger=False):
     """
     Computing the accuracy score of the predictor
     :param y:
@@ -28,9 +28,12 @@ def compute_accuracy(y, hat_y, bar=0.5, if_logger=False):
         )
         logger.info("predict y is: {}".format(hat_y))
 
-    # y = np.where(y > bar, 1, 0)
-    # hat_y = np.where(hat_y > bar, 1, 0)
-    hat_y = hat_y.argmax(1)
+    y = np.where(y > bar, 1, 0)
+    # added by Bojian
+    if output_dim == 1:
+        hat_y = np.where(hat_y > bar, 1, 0)
+    else:
+        hat_y = hat_y.argmax(1)
 
     if if_logger:
         logger.info(
@@ -39,7 +42,7 @@ def compute_accuracy(y, hat_y, bar=0.5, if_logger=False):
             )
         )
 
-    return accuracy_score(y, hat_y)
+    return accuracy_score(y, hat_y), balanced_accuracy_score(y, hat_y)
 
 
 # suf gap
@@ -180,10 +183,10 @@ def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
 # all
 def result_show(y_test, predict, A_test, prm):
     logger.info("=============== Accuracy =============")
-    accuracy = compute_accuracy(y_test, predict, prm.acc_bin)
-    b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
+    accuracy, b_acc = compute_accuracy(y_test, predict, prm.acc_bin, prm.output_dim)
+    # b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
     logger.info("[Accuracy] The overall accuracy is: {}".format(accuracy))
-    logger.info("[Balanced Accuracy] The overall balanced accuracy is: {}".format(b_acc))
+    logger.info("[Balanced Acc] The overall balanced acc is: {}".format(b_acc))
 
 
     logger.info("=============== Sufficient Gap =============")
@@ -197,8 +200,8 @@ def result_show(y_test, predict, A_test, prm):
 
 
 def result_wandb(y_test, predict, A_test, prm):
-    accuracy = compute_accuracy(y_test, predict, prm.acc_bin, if_logger=False)
-    b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
+    accuracy, b_acc = compute_accuracy(y_test, predict, prm.acc_bin, prm.output_dim, if_logger=False)
+    #3 b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
     suf_gap_avg_score = standard_suf_gap_all(predict, y_test, A_test, prm, if_logger=False)
 
     wandb_dict = {

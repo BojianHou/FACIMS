@@ -8,6 +8,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import time
+import datetime
 from data.dataset import load_data
 from data.hypers import CALI_PARAMS
 
@@ -32,6 +34,8 @@ except Exception as e:
 
 
 def main(prm):
+    time_start = time.time()
+
     seed_setup(prm.seed)
     
     # log setting
@@ -91,6 +95,7 @@ def main(prm):
         
     prm.input_shape = len(X_train[0])
     prm.output_dim = len(np.unique(y_train))
+    prm.num_classes = len(np.unique(y_train))
 
     logger.info(prm)
 
@@ -127,7 +132,13 @@ def main(prm):
 
     result_show(y_test, predict, A_test, prm)
 
+    time_end = time.time()
+    time_duration = time_end - time_start
+    logger.info("The time for all is: {}".format(
+            str(datetime.timedelta(seconds=time_duration))))
+
     logger.handlers.clear()
+
 
 
 if __name__ == "__main__":

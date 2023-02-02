@@ -26,11 +26,13 @@ def TxtLogger(filename, verbosity="info", logname="fair"):
     # file handler
     fh = logging.FileHandler(filename, "w")
     fh.setFormatter(formatter)
+
     logger.addHandler(fh)
     # stream handler
-    sh = logging.StreamHandler()
-    sh.setFormatter(formatter)
-    logger.addHandler(sh)
+    # commented by Bojian to prevent printing the logger information in the python console twice
+    # sh = logging.StreamHandler()
+    # sh.setFormatter(formatter)
+    # logger.addHandler(sh)
 
     return logger
 

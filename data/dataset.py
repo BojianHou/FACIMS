@@ -429,9 +429,13 @@ def generate_multi_attrs_toxic(h5_file, csv_file, extracted_attrs, bar):
 
     Y_train = np.where(Y_train > bar, 1, 0)
     Y_test = np.where(Y_test > bar, 1, 0)
+
+    X_train, X_val, A_train, A_val, Y_train, Y_val = \
+        train_test_split(X_train, A_train, Y_train, test_size=0.2, random_state=42, stratify=Y_train)
+
     logger.info("TOXIC dataset Loaded.")
 
-    return X_train, X_test, A_train, A_test, Y_train, Y_test
+    return X_train, X_val, X_test, A_train, A_val, A_test, Y_train, Y_val, Y_test
 
 
 def load_toxic_distilbert(sens_attrs, bar):
@@ -455,12 +459,12 @@ def load_toxic_distilbert(sens_attrs, bar):
     logger.info(
         f"Sensitive Attribute is {sens_attrs}, group is {extracted_attrs}")
     logger.info(f"Accuracy bar is {bar}")
-    X_train, X_test, A_train, A_test, Y_train, Y_test = generate_multi_attrs_toxic(
+    X_train, X_val, X_test, A_train, A_val, A_test, Y_train, Y_val, Y_test = generate_multi_attrs_toxic(
         h5_file, csv_file, extracted_attrs, bar
     )
     general_info_logging(X_train, X_test, A_train, A_test, Y_train, Y_test)
 
-    return X_train, X_test, A_train, A_test, Y_train, Y_test
+    return X_train, X_val, X_test, A_train, A_val, A_test, Y_train, Y_val, Y_test
 
 
 # ----------------------------------------------------------------------------------------------
@@ -617,8 +621,10 @@ def sample_batch_sen_idx(X, A, y, prm, s):
     # batch_x = torch.tensor(batch_x).cuda().float()
     # batch_y = torch.tensor(batch_y).cuda().float()
     batch_x = torch.tensor(batch_x).float().to(prm.device)
-    # batch_y = torch.tensor(batch_y).float().to(prm.device)
-    batch_y = torch.LongTensor(batch_y).to(prm.device)
+    if prm.output_dim == 1:
+        batch_y = torch.tensor(batch_y).float().to(prm.device)
+    else:
+        batch_y = torch.LongTensor(batch_y).to(prm.device)
 
     return batch_x, batch_y
 

@@ -129,8 +129,8 @@ def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
 
     groups_pred_true = np.zeros((num_A, n_bins))
     groups_pred_prob = np.zeros((num_A, n_bins))
-    y_hat = softmax(y_hat, axis=1)  # added by Bojian
-    y_hat = y_hat.max(1)  # added by Bojian
+    # y_hat = softmax(y_hat, axis=1)  # added by Bojian
+    # y_hat = y_hat.max(1)  # added by Bojian
     all_prob_true, all_prob_pred = calibration_curve(y, y_hat, n_bins=n_bins)
     if all_prob_true.shape[0] != n_bins:
         all_prob_true = np.zeros(n_bins)

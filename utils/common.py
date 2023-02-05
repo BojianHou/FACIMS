@@ -86,20 +86,17 @@ def get_val_w(device, num_val_samples):
     return w_val
 
 
-def loss_adjust_cross_entropy_cdt(logits, targets, params, group_size=1):
+def loss_adjust_cross_entropy_cdt(logits, targets, params):
     dy = params[0]
     ly = params[1]
-    if group_size != 1:
-        new_dy = dy.repeat_interleave(group_size)
-        new_ly = ly.repeat_interleave(group_size)
-        x = logits*new_dy+new_ly
-    else:
-        x = logits*dy+ly
+
+    new_logits = logits*dy+ly
+
     if len(params) == 3:
         wy = params[2]
-        loss = F.cross_entropy(x, targets, weight=wy)
+        loss = F.cross_entropy(new_logits, targets, weight=wy)
     else:
-        loss = F.cross_entropy(x, targets)
+        loss = F.cross_entropy(new_logits, targets)
     return loss
 
 
@@ -107,13 +104,23 @@ def loss_adjust_cross_entropy(logits, targets, params):
     dy = params[0]
     ly = params[1]
     # logits = torch.Tensor.double(logits)
-    targets = torch.LongTensor(targets)
-    new_logits = logits * torch.sigmoid(dy) + ly
+    # targets = torch.LongTensor(targets)
+    # new_logits = logits * torch.sigmoid(dy) + ly
+    new_logits = logits + ly
     if len(params) == 3:
         wy = params[2]
         loss = F.cross_entropy(new_logits, targets, weight=wy)
     else:
         loss = F.cross_entropy(new_logits, targets)
+    return loss
+
+
+def loss_adjust_cross_entropy_manual(logits, targets, param):
+    # print('new_logits = logits + torch.log(params)')
+    new_logits = logits - torch.log(param)
+    # new_logits = logits - params
+    # new_logits = logits / params
+    loss = F.cross_entropy(new_logits, targets)
     return loss
 
 

@@ -25,6 +25,7 @@ from utils.common import seed_setup
 
 
 from utils.common import cross_entropy, loss_adjust_cross_entropy
+from utils.common import loss_adjust_cross_entropy_manual
 
 
 try:
@@ -94,14 +95,24 @@ def main(prm):
         y_train = y_train[A_train_index]
         
     prm.input_shape = len(X_train[0])
-    prm.output_dim = len(np.unique(y_train))
+    # prm.output_dim = len(np.unique(y_train))
+    prm.output_dim = 2
     prm.num_classes = len(np.unique(y_train))
+
+    if prm.is_bilevel:
+        prm.manual_adjust = False
+        # if we use bilevel optimization to tackle
+        # imbalance issue by adjusting logits automatically,
+        # we then cannot use manual way to adjust logits
 
     logger.info(prm)
 
     # Training Components
     # loss_criterion = nn.BCELoss()
-    low_loss_criterion = loss_adjust_cross_entropy
+    if prm.manual_adjust:
+        low_loss_criterion = loss_adjust_cross_entropy_manual
+    else:
+        low_loss_criterion = loss_adjust_cross_entropy
     up_loss_criterion = cross_entropy
 
     # create the prior model
@@ -205,12 +216,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--lr_post", type=float, help="learning rate for post model", default=0.6
     )
-    parser.add_argument(
-        "--weight",
-        type=float,
-        help="weights for controlling ERM and KL divergence (at least 0.1)",
-        default=0.4,
-    )
+    # parser.add_argument(
+    #     "--weight",
+    #     type=float,
+    #     help="weights for controlling ERM and KL divergence (at least 0.1)",
+    #     default=0.4,
+    # )
 
     parser.add_argument(
         "--divergence_type",
@@ -286,7 +297,18 @@ if __name__ == "__main__":
         default="test",
     )
     parser.add_argument(
-        "--train_inf_step", type=int, help="Inference Period while training", default=2
+        "--train_inf_step", type=int, help="Inference Period while training", default=1
+    )
+    parser.add_argument(
+        "--is_bilevel", type=bool,
+        help="whether use bilevel to tackle the imbalance issue",
+        default=True
+    )
+
+    parser.add_argument(
+        "--manual_adjust", type=bool,
+        help="whether manually adjust label",
+        default=False
     )
 
     args = parser.parse_args()

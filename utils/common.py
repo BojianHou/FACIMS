@@ -105,8 +105,8 @@ def loss_adjust_cross_entropy(logits, targets, params):
     ly = params[1]
     # logits = torch.Tensor.double(logits)
     # targets = torch.LongTensor(targets)
-    # new_logits = logits * torch.sigmoid(dy) + ly
-    new_logits = logits + ly
+    new_logits = logits * torch.sigmoid(dy) + ly
+    # new_logits = logits + ly
     if len(params) == 3:
         wy = params[2]
         loss = F.cross_entropy(new_logits, targets, weight=wy)

@@ -6,6 +6,7 @@ from scipy import interpolate
 from scipy.special import softmax
 from data.hypers import CALI_PARAMS
 from sklearn.metrics import balanced_accuracy_score
+from sklearn.preprocessing import normalize
 
 logger = logging.getLogger("fair")
 
@@ -130,16 +131,16 @@ def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
     groups_pred_true = np.zeros((num_A, n_bins))
     groups_pred_prob = np.zeros((num_A, n_bins))
     # y_hat = softmax(y_hat, axis=1)  # added by Bojian
+    y_hat = y_hat / np.concatenate([[y_hat.sum(1)], [y_hat.sum(1)]]).T  # normalize
     # y_hat = y_hat.max(1)  # added by Bojian
+    y_hat = y_hat[:,1]
     all_prob_true, all_prob_pred = calibration_curve(y, y_hat, n_bins=n_bins)
     if all_prob_true.shape[0] != n_bins:
         all_prob_true = np.zeros(n_bins)
     for i in range(len(np.unique(A))):
         try:
             t, p = calibration_curve(
-                y[A == np.unique(A)[i]], y_hat[A ==
-                                               np.unique(A)[i]], n_bins=n_bins
-            )
+                y[A == np.unique(A)[i]], y_hat[A == np.unique(A)[i]], n_bins=n_bins)
             if params["interpolate_kind"]:
                 # new_x = np.linspace(0.01, 0.99, n_bins)
                 new_x = all_prob_pred

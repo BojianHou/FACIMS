@@ -166,8 +166,11 @@ def neumann_hyperstep_preconditioner(mean_d_L_up_d_post,  # mean over all the d_
         for d_L_low_d_post, post_model in zip(list_d_L_low_d_post, list_post_model):
             # torch.autograd.set_detect_anomaly(True)
             hessian_term += gather_flat_grad(
-                           grad(d_L_low_d_post, post_model.parameters(),
-                           grad_outputs=counter.view(-1), retain_graph=True, create_graph=True, allow_unused=True))
+                            grad(d_L_low_d_post, post_model.parameters(),
+                                 grad_outputs=counter.view(-1),
+                                 retain_graph=True,
+                                 create_graph=True,
+                                 allow_unused=True))
         counter = old_counter - elementary_lr * hessian_term
         preconditioner = preconditioner + counter
         i += 1

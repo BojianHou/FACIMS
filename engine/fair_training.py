@@ -93,7 +93,7 @@ def train_one_task(
         model_freeze(post_model)
         # log
         # if _ + 1 == prm.max_inner:
-        if (_ + 1) % 2 == 0:
+        if (_ + 1) % 1 == 0:
             model_num = prm.model_num if prm.method == "ours_sample" else prm.N_subtask
             logger.info(
                 "Epoch=[{}/{}], Inner Loop Task=[{}/{}], Inner Step=[{}/{}], DIS_LOSS = {}, CLS_LOSS = {}, TOTAL_LOSS = {}".format(
@@ -140,7 +140,8 @@ def train_one_task_without_GD(
     d_L_low_d_post = torch.zeros(num_weights, device=prm.device)  # gradient of post model w.r.t. L_low
 
     logger.info('--------------Get the loss of the post models without doing gradient descent------------')
-    for _ in range(prm.max_inner):
+    max_inner = 1
+    for _ in range(max_inner):
 
         # model_freeze(prior_model)
         model_activate(prior_model)
@@ -152,8 +153,6 @@ def train_one_task_without_GD(
         # number of MC sample (default as 5)
         n_MC = prm.n_MC
         inputs, targets = batch
-
-        optimizer_post.zero_grad()  # position changed by Bojian, once before loss.backward()
 
         # Monte-Carlo loop in estimation prediction loss
         for i_MC in range(n_MC):
@@ -169,6 +168,7 @@ def train_one_task_without_GD(
 
         loss = avg_empiric_loss + prm.lambda_low * complexity
         # added by Bojian
+        optimizer_post.zero_grad()
         d_L_low_d_post += gather_flat_grad(grad(loss, post_model.parameters(), create_graph=True))
         # second_derivative = gather_flat_grad(grad(d_L_low_d_post, post_model.parameters(),
         #      grad_outputs=torch.ones(num_weights, device=prm.device), retain_graph=True))
@@ -180,26 +180,26 @@ def train_one_task_without_GD(
         # model_freeze(post_model)
         # log
         # if _ + 1 == prm.max_inner:
-        if (_ + 1) % 2 == 0:
-            model_num = prm.model_num if prm.method == "ours_sample" else prm.N_subtask
-            logger.info(
-                "Epoch=[{}/{}], Inner Loop Task=[{}/{}], Inner Step=[{}/{}], DIS_LOSS = {}, CLS_LOSS = {}, TOTAL_LOSS = {}".format(
-                    epoch_id + 1,
-                    prm.training_epoch,
-                    task_index + 1,
-                    model_num,
-                    _ + 1,
-                    prm.max_inner,
-                    complexity.item(),
-                    avg_empiric_loss.item(),
-                    loss.item(),
-                )
+        # if (_ + 1) % 2 == 0:
+        model_num = prm.model_num if prm.method == "ours_sample" else prm.N_subtask
+        logger.info(
+            "Epoch=[{}/{}], Inner Loop Task=[{}/{}], Inner Step=[{}/{}], DIS_LOSS = {}, CLS_LOSS = {}, TOTAL_LOSS = {}".format(
+                epoch_id + 1,
+                prm.training_epoch,
+                task_index + 1,
+                model_num,
+                _ + 1,
+                max_inner,
+                complexity.item(),
+                avg_empiric_loss.item(),
+                loss.item(),
             )
-            if prm.use_wandb and task_index <= 5:
-                name = prm.method + "_task_" + str(task_index) + "_all_loss"
-                wandb.log({name: loss.item()}, commit=False)
+        )
+        if prm.use_wandb and task_index <= 5:
+            name = prm.method + "_task_" + str(task_index) + "_all_loss"
+            wandb.log({name: loss.item()}, commit=False)
 
-    return d_L_low_d_post / prm.max_inner  # added by Bojian
+    return d_L_low_d_post / max_inner  # added by Bojian
 
 
 def update_meta_prior(list_of_post_model,
@@ -211,6 +211,7 @@ def update_meta_prior(list_of_post_model,
                       val_loader,  # added by Bojian
                       up_params,  # added by Bojian
                       optimizer_prior, prm, epoch_id):
+
     for _ in range(prm.max_outer):
 
         model_activate(prior_model)
@@ -283,39 +284,41 @@ def update_meta_prior(list_of_post_model,
                 list_of_post_model, prm)
 
             indirect_grad_prior = torch.zeros(num_weights_prior, device=prm.device)
-            for idx, d_L_low_d_post in enumerate(list_d_L_low_d_post):
+            for d_L_low_d_post in list_d_L_low_d_post:
                 prior_model.zero_grad()
                 indirect_grad_prior += gather_flat_grad(
                     grad(d_L_low_d_post,
                          prior_model.parameters(),
                          grad_outputs=preconditioner.view(-1),
-                         retain_graph=True,
+                         # retain_graph=True,
                          create_graph=True,
                          allow_unused=True))
 
-            prior_grad = d_L_up_d_prior# - indirect_grad_prior
+            prior_grad = d_L_up_d_prior - indirect_grad_prior
 
-            indirect_grad_hyper = torch.zeros(4, device=prm.device)
+            # we have two hyperparameters, ly and dy,
+            # each of which has the dimension of output_dim
+            indirect_grad_hyper = torch.zeros(2 * prm.output_dim, device=prm.device)
             for d_L_low_d_post in list_d_L_low_d_post:
                 optimizer_hyper.zero_grad()
                 indirect_grad_hyper += gather_flat_grad(
                     grad(d_L_low_d_post,
                          get_trainable_hyper_params(up_params),
                          grad_outputs=preconditioner.view(-1),
-                         retain_graph=True,
+                         # retain_graph=True,
                          create_graph=True,
                          allow_unused=True))
 
             hyper_grad = -indirect_grad_hyper
 
             # complexity.backward()
-            optimizer_hyper.zero_grad()
-            assign_gradient(up_params, hyper_grad, prm.num_classes)
-            optimizer_hyper.step()
-
             optimizer_prior.zero_grad()
             assign_gradient(prior_model.parameters(), prior_grad, prm.num_classes)
             optimizer_prior.step()
+
+            optimizer_hyper.zero_grad()
+            assign_gradient(up_params, hyper_grad, prm.num_classes)
+            optimizer_hyper.step()
 
         # if _ + 1 == prm.max_outer:
         if (_ + 1) % 1 == 0:
@@ -434,6 +437,9 @@ def training_task_batches(
     logger.info(
         f"current post optimizer lr={list_of_post_optimizer[0].param_groups[0]['lr']}"
     )
+    logger.info(
+        f"current hyper optimizer lr={optimizer_hyper.param_groups[0]['lr']}"
+    )
 
 
 def update_meta_post(list_of_post_model, prior_model, ratio):
@@ -473,7 +479,7 @@ def train_ours(prm, prior_model,
     up_params = [dy, ly, w_val]
 
     optimizer_hyper = optim.SGD(params=[{'params': dy}, {'params': ly}],
-                                lr=0.01, momentum=0.9, weight_decay=5e-4)
+                                lr=0.001, momentum=0.9, weight_decay=5e-4)
     # optimizer schedular
     optimizer_hyper_schedular = PriorExponentialLR(
         optimizer_hyper, prm.training_epoch)

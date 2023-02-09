@@ -23,6 +23,7 @@ from utils.common import get_init_dy, get_init_ly, get_train_w, get_val_w
 from utils.common import gather_flat_grad, neumann_hyperstep_preconditioner
 from utils.common import get_trainable_hyper_params, assign_gradient
 from utils.common import model_activate, model_freeze
+from utils.postprocessing import demographic_parity, equalized_odds, standard_suf_gap_all
 from sklearn.metrics import balanced_accuracy_score
 
 logger = logging.getLogger("fair")
@@ -84,7 +85,7 @@ def train_one_task(
         # Compute the complexity term (noised prior can be set false)
         complexity = get_KLD(prior_model, post_model, prm, noised_prior=True)
 
-        loss = avg_empiric_loss + prm.lambda_low * complexity
+        loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
 
         loss.backward()
         optimizer_post.step()
@@ -166,7 +167,7 @@ def train_one_task_without_GD(
         # Compute the complexity term (noised prior can be set false)
         complexity = get_KLD(prior_model, post_model, prm, noised_prior=True)
 
-        loss = avg_empiric_loss + prm.lambda_low * complexity
+        loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
         # added by Bojian
         optimizer_post.zero_grad()
         d_L_low_d_post += gather_flat_grad(grad(loss, post_model.parameters(), create_graph=True))
@@ -266,6 +267,7 @@ def update_meta_prior(list_of_post_model,
                 val_loss += up_loss_criterion(val_output, val_targets, up_params)
                 #val_loss_list.append(val_loss.detach().numpy())
             val_loss = val_loss / len(val_loader)
+            # up_loss = complexity
             up_loss = prm.lambda_up * val_loss + (1-prm.lambda_up) * complexity
             # up_loss_list.append(up_loss.detach().numpy())
 
@@ -280,21 +282,21 @@ def update_meta_prior(list_of_post_model,
 
             preconditioner = neumann_hyperstep_preconditioner(
                 torch.mean(torch.stack(list_d_L_up_d_post), dim=0),
-                list_d_L_low_d_post, 1.0, 5,
+                list_d_L_low_d_post, 0.1, 10,
                 list_of_post_model, prm)
 
-            indirect_grad_prior = torch.zeros(num_weights_prior, device=prm.device)
-            for d_L_low_d_post in list_d_L_low_d_post:
-                prior_model.zero_grad()
-                indirect_grad_prior += gather_flat_grad(
-                    grad(d_L_low_d_post,
-                         prior_model.parameters(),
-                         grad_outputs=preconditioner.view(-1),
-                         # retain_graph=True,
-                         create_graph=True,
-                         allow_unused=True))
+            # indirect_grad_prior = torch.zeros(num_weights_prior, device=prm.device)
+            # for d_L_low_d_post in list_d_L_low_d_post:
+            #     prior_model.zero_grad()
+            #     indirect_grad_prior += gather_flat_grad(
+            #         grad(d_L_low_d_post,
+            #              prior_model.parameters(),
+            #              grad_outputs=preconditioner.view(-1),
+            #              # retain_graph=True,
+            #              create_graph=True,
+            #              allow_unused=True))
 
-            prior_grad = d_L_up_d_prior - indirect_grad_prior
+            prior_grad = prm.lambda_up * d_L_up_d_prior #- (1 - prm.lambda_up) * indirect_grad_prior
 
             # we have two hyperparameters, ly and dy,
             # each of which has the dimension of output_dim
@@ -540,17 +542,22 @@ def train_ours(prm, prior_model,
                 "The training time for one epoch is: {}".format(
                     str(datetime.timedelta(seconds=ss_time)))
             )
+
             predict = inference(prior_model, X_test, prm)
             accuracy, b_acc = compute_accuracy(y_test, predict, 0.5, prm.output_dim)
-            # b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
-            logger.info(
-                "The overall accuracy of EPOCH [{}] is: {}".format(
-                    epoch_id, accuracy)
-            )
-            logger.info(
-                "The overall balanced accuracy of EPOCH [{}] is: {}".format(
-                    epoch_id, b_acc)
-            )
+            DP_score = demographic_parity(predict, A_test)
+            EO_score = equalized_odds(predict, y_test, A_test)
+            suf_gap_avg_score = standard_suf_gap_all(predict, y_test, A_test, prm)
+
+            logger.info("The overall accuracy of EPOCH [{}] is: {}".format(epoch_id+1, accuracy))
+            logger.info("The overall balanced acc of EPOCH [{}] is: {}".format(epoch_id+1, b_acc))
+            logger.info("The overall demographic parity score "
+                        "of EPOCH [{}] is: {}".format(epoch_id+1, DP_score))
+            logger.info("The overall equalized odds score "
+                        "of EPOCH [{}] is: {}".format(epoch_id+1, EO_score))
+            logger.info("The overall group sufficiency gap "
+                        "of EPOCH [{}] is: {}".format(epoch_id+1, suf_gap_avg_score))
+
             if prm.use_wandb:
                 wandb_dict = result_wandb(y_test, predict, A_test, prm)
                 wandb.log(wandb_dict, commit=False)
@@ -564,6 +571,10 @@ def train_ours(prm, prior_model,
                 np.save(osp.join(npy_dir, npy_file_pre + "_testy.npy"), y_test)
                 np.save(osp.join(npy_dir, npy_file_pre + "_testA.npy"), A_test)
                 np.save(osp.join(npy_dir, npy_file_pre + "_predict.npy"), predict)
+
+
+def train_ERM():
+    return
 
 
 def train(

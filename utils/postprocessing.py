@@ -133,7 +133,7 @@ def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
     # y_hat = softmax(y_hat, axis=1)  # added by Bojian
     y_hat = y_hat / np.concatenate([[y_hat.sum(1)], [y_hat.sum(1)]]).T  # normalize
     # y_hat = y_hat.max(1)  # added by Bojian
-    y_hat = y_hat[:,1]
+    y_hat = y_hat[:,-1]
     all_prob_true, all_prob_pred = calibration_curve(y, y_hat, n_bins=n_bins)
     if all_prob_true.shape[0] != n_bins:
         all_prob_true = np.zeros(n_bins)
@@ -162,33 +162,74 @@ def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
     if 'toxic' in prm.dataset.lower():
         exp_x_a = exp_x_given_a[1:].mean()
         if if_logger:
-            logger.info(
-                "[SufGAP] The average sufficiency gap : {}".format(exp_x_a))
+            logger.info("[SufGAP] The average sufficiency gap : {}".format(exp_x_a))
         return exp_x_a
     elif 'adult' in prm.dataset.lower():
         exp_x_a = exp_x_given_a[1:].mean()
         if if_logger:
-            logger.info(
-                "[SufGAP] The average sufficiency gap : {}".format(exp_x_a))
+            logger.info( "[SufGAP] The average sufficiency gap : {}".format(exp_x_a))
         return exp_x_a
     else:
         exp_x_a = exp_x_given_a.mean()
         if if_logger:
-            logger.info(
-                "[SufGAP] The average sufficiency gap : {}".format(exp_x_a))
-        logger.info(
-            "[SufGAP] The average sufficiency gap : {}".format(exp_x_a))
+            logger.info("[SufGAP] The average sufficiency gap : {}".format(exp_x_a))
         return exp_x_a
+
+
+def equalized_odds(predictions, truth, sensitive_features):
+    # measure the difference between the true positive rates of different groups
+
+    predictions = predictions.argmax(1)
+
+    group_true_pos_r = []
+    values_of_sensible_feature = np.unique(sensitive_features)
+
+    true_positive = np.sum([1.0 if predictions[i] == 1 and truth[i] == 1
+                             else 0.0 for i in range(len(predictions))])
+    all_positive = np.sum([1.0 if truth[i] == 1 else 0.0 for i in range(len(predictions))])
+    all_true_pos_r = true_positive / all_positive
+
+    for val in values_of_sensible_feature:
+        positive_sensitive = np.sum([1.0 if sensitive_features[i] == val and truth[i] == 1 else 0.0
+                                     for i in range(len(predictions))])
+        if positive_sensitive > 0:
+            true_positive_sensitive = np.sum([1.0 if predictions[i] == 1 and
+                        sensitive_features[i] == val and truth[i] == 1
+                         else 0.0 for i in range(len(predictions))])
+            eq_tmp = true_positive_sensitive / positive_sensitive  # true positive rate
+            group_true_pos_r.append(eq_tmp)
+
+    return np.mean(np.abs(all_true_pos_r - group_true_pos_r))
+
+
+def demographic_parity(predictions, sensitive_features):
+    # measure the difference between the expectation of prediction between groups
+    predictions = predictions / np.concatenate([[predictions.sum(1)], [predictions.sum(1)]]).T  # normalize
+    predictions = predictions[:, -1]
+
+    all_eq = np.mean(predictions)
+    eq_sensible = []
+    values_of_sensible_feature = np.unique(sensitive_features)
+    for val in values_of_sensible_feature:
+        eq_sensible.append(predictions[np.where(sensitive_features == val)[0]].mean())
+
+    return np.mean(np.abs(all_eq - eq_sensible))
 
 
 # all
 def result_show(y_test, predict, A_test, prm):
     logger.info("=============== Accuracy =============")
     accuracy, b_acc = compute_accuracy(y_test, predict, prm.acc_bin, prm.output_dim)
-    # b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
     logger.info("[Accuracy] The overall accuracy is: {}".format(accuracy))
     logger.info("[Balanced Acc] The overall balanced acc is: {}".format(b_acc))
 
+    logger.info("=============== Demographic Parity =============")
+    DP_score = demographic_parity(predict, A_test)
+    logger.info("[DP] The overall demographic parity is: {}".format(DP_score))
+
+    logger.info("=============== Equalized Odds =============")
+    EO_score = equalized_odds(predict, y_test, A_test)
+    logger.info("[EO] The overall equalized odds is: {}".format(EO_score))
 
     logger.info("=============== Sufficient Gap =============")
     suf_gap_avg_score = standard_suf_gap_all(predict, y_test, A_test, prm, if_logger=True)

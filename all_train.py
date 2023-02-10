@@ -24,9 +24,6 @@ from utils.loggers import TxtLogger, set_logger, set_npy
 from utils.common import seed_setup
 
 
-from utils.common import cross_entropy, loss_adjust_cross_entropy
-from utils.common import loss_adjust_cross_entropy_manual
-
 
 try:
     import wandb
@@ -48,6 +45,7 @@ def main(prm):
     # stochastic/snn setting
     # prm.device = torch.device("cuda")
     prm.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")  # added by Bojian
+    # prm.device = 'cpu'
     prm.log_var_init = {"mean": prm.log_var_init_mean, "std": prm.log_var_init_var}
 
     # params setting
@@ -95,32 +93,44 @@ def main(prm):
         y_train = y_train[A_train_index]
         
     prm.input_shape = len(X_train[0])
-    # prm.output_dim = len(np.unique(y_train))
-    prm.output_dim = 2
+    prm.output_dim = len(np.unique(y_train))
+    # prm.output_dim = 2
     prm.num_classes = len(np.unique(y_train))
 
-    if prm.is_bilevel:
-        prm.manual_adjust = False
-        # if we use bilevel optimization to tackle
-        # imbalance issue by adjusting logits automatically,
-        # we then cannot use manual way to adjust logits
+    # if we use bilevel optimization to tackle
+    # imbalance issue by adjusting logits automatically,
+    # we then cannot use manual way to adjust logits
+    # if prm.is_bilevel:
+    #     prm.manual_adjust = False
+
+    prm.is_ERM = False
+    prm.no_KL = False
+    prm.no_indirect_grad = False
+
+    if prm.method == 1:  # FAMS
+        pass
+    elif prm.method == 2:  # FAMS with manual logits adjustment
+        prm.manual_adjust = True
+    elif prm.method == 3:  # ours: FAMS with automatic logits adjustment
+        prm.is_bilevel = True
+    elif prm.method == 4:  # ours without KL in up level
+        prm.is_bilevel = True
+        prm.no_KL = True
+    elif prm.method == 5:  # ours without indirect grad for global model f
+        prm.is_bilevel = True
+        prm.no_indirect_grad = True
+    elif prm.method == 6:  # ours without KL in up level and without indirect grad for global model f
+        prm.is_bilevel = True
+        prm.no_KL = True
+        prm.no_indirect_grad = True
+    elif prm.method == 7:  # trivial ERM
+        prm.is_ERM = True
 
     logger.info(prm)
 
-    # Training Components
-    # loss_criterion = nn.BCELoss()
-    if prm.manual_adjust:
-        low_loss_criterion = loss_adjust_cross_entropy_manual
-    else:
-        low_loss_criterion = loss_adjust_cross_entropy
-    up_loss_criterion = cross_entropy
-
-    # create the prior model
-    prior_model = get_model(prm)
-
     # train
     # train( prm, prior_model, loss_criterion, X_train, A_train, y_train, X_test, A_test, y_test)
-    train(prm, prior_model, low_loss_criterion, up_loss_criterion,
+    model = train(prm,
           X_train, A_train, y_train,
           X_val, A_val, y_val,
           X_test, A_test, y_test)
@@ -128,7 +138,7 @@ def main(prm):
     # evaluation
     logger.info("=============== Inference Process =============")
 
-    predict = inference(prior_model, X_test, prm)
+    predict = inference(model, X_test, prm)
 
     # save result
     npy_dir, npy_file_pre = set_npy(prm, prm.training_epoch)
@@ -145,7 +155,7 @@ def main(prm):
 
     time_end = time.time()
     time_duration = time_end - time_start
-    logger.info("The time for all is: {}".format(
+    logger.info("The total time for method {} is: {}".format(prm.method,
             str(datetime.timedelta(seconds=time_duration))))
 
     logger.handlers.clear()
@@ -163,7 +173,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------
     parser.add_argument("--config", type=str, help="config file", default='EXPS/tadpole_template.yml')
 
-    parser.add_argument("--method", type=str, help="method name", default="ours")
+    # parser.add_argument("--method", type=str, help="method name", default="ours")
     # DATASET
     parser.add_argument("--dataset", type=str, help="dataset name", default="tadpole")
     parser.add_argument(
@@ -277,7 +287,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--params",
         type=dict,
-        help="param dict for suf  calibration gap calaculation",
+        help="param dict for suf calibration gap calaculation",
         default=None,
     )
     # ----------------------------------------------------------------------------------------------------
@@ -299,10 +309,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--train_inf_step", type=int, help="Inference Period while training", default=1
     )
+
     parser.add_argument(
         "--is_bilevel", type=bool,
         help="whether use bilevel to tackle the imbalance issue",
-        default=True
+        default=False
     )
 
     parser.add_argument(
@@ -310,6 +321,17 @@ if __name__ == "__main__":
         help="whether manually adjust label",
         default=False
     )
+
+    parser.add_argument(
+        "--method", type=int,
+        help="1: FAMS, 2: FAMS+manual logits adjustment"
+             "3: Ours, 4: Ours-KL in up level"
+             "5: Ours-indirect grad for global f"
+             "6: Ours-KL in up level-indirect grad for global f"
+             "7: trivial ERM",
+        default=1
+    )
+
 
     args = parser.parse_args()
 

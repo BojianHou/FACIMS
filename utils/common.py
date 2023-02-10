@@ -124,8 +124,8 @@ def loss_adjust_cross_entropy_manual(logits, targets, param):
     return loss
 
 
-def cross_entropy(logits, targets, params=[], group_size=1):
-    if len(params) == 3:
+def cross_entropy(logits, targets, params=None):
+    if params and len(params) == 3:
         return F.cross_entropy(logits, targets, weight=params[2])
     else:
         return F.cross_entropy(logits, targets)

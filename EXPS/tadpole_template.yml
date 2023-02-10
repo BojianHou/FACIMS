@@ -1,9 +1,9 @@
 # COMMON args
-method: ours 
+# method: ours
 model_name: FcNet4
 training_epoch: 80 # 80
 batch_size: 50
-lr_prior: 0.01 # 0.001
+# lr_prior: 0.01 # 0.001
 
 #------------------------------------------------------------------------------------
 #DATASET related
@@ -18,11 +18,11 @@ upper_rate: 4 # amazon
 #------------------------------------------------------------------------------------
 # METHOD Specific
 # ours 
-lr_post: 0.1  # 0.4
-lambda_low: 0.4 # trade-off parameter between loss and KL for post model
-lambda_up: 0.4  # trade-off parameter between loss and KL for prior model
-max_inner: 10
-max_outer: 5
+# lr_post: 0.1  # 0.4
+lambda_low: 0.7 # trade-off parameter between loss and KL for post model
+lambda_up: 0.7  # 0.4 trade-off parameter between loss and KL for prior model
+max_inner: 10  # 10
+max_outer: 5  # 5
 divergence_type: W_Sqr  # W_Sqr KL
 kappa_prior: 0.01
 kappa_post: 0.001

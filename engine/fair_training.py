@@ -23,7 +23,9 @@ from utils.common import get_init_dy, get_init_ly, get_train_w, get_val_w
 from utils.common import gather_flat_grad, neumann_hyperstep_preconditioner
 from utils.common import get_trainable_hyper_params, assign_gradient
 from utils.common import model_activate, model_freeze
-from sklearn.metrics import balanced_accuracy_score
+from utils.postprocessing import demographic_parity, equalized_odds, standard_suf_gap_all
+from utils.common import cross_entropy, loss_adjust_cross_entropy
+from utils.common import loss_adjust_cross_entropy_manual
 
 logger = logging.getLogger("fair")
 
@@ -84,7 +86,7 @@ def train_one_task(
         # Compute the complexity term (noised prior can be set false)
         complexity = get_KLD(prior_model, post_model, prm, noised_prior=True)
 
-        loss = avg_empiric_loss + prm.lambda_low * complexity
+        loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
 
         loss.backward()
         optimizer_post.step()
@@ -93,10 +95,11 @@ def train_one_task(
         model_freeze(post_model)
         # log
         # if _ + 1 == prm.max_inner:
-        if (_ + 1) % 2 == 0:
+        if (_ + 1) % 1 == 0:
             model_num = prm.model_num if prm.method == "ours_sample" else prm.N_subtask
             logger.info(
-                "Epoch=[{}/{}], Inner Loop Task=[{}/{}], Inner Step=[{}/{}], DIS_LOSS = {}, CLS_LOSS = {}, TOTAL_LOSS = {}".format(
+                "Epoch=[{}/{}], Inner Loop Task=[{}/{}], Inner Step=[{}/{}], "
+                "DIS_LOSS = {:.4f}, CLS_LOSS = {:.4f}, TOTAL_LOSS = {:.4f}".format(
                     epoch_id + 1,
                     prm.training_epoch,
                     task_index + 1,
@@ -140,7 +143,8 @@ def train_one_task_without_GD(
     d_L_low_d_post = torch.zeros(num_weights, device=prm.device)  # gradient of post model w.r.t. L_low
 
     logger.info('--------------Get the loss of the post models without doing gradient descent------------')
-    for _ in range(prm.max_inner):
+    max_inner = 1
+    for _ in range(max_inner):
 
         # model_freeze(prior_model)
         model_activate(prior_model)
@@ -152,8 +156,6 @@ def train_one_task_without_GD(
         # number of MC sample (default as 5)
         n_MC = prm.n_MC
         inputs, targets = batch
-
-        optimizer_post.zero_grad()  # position changed by Bojian, once before loss.backward()
 
         # Monte-Carlo loop in estimation prediction loss
         for i_MC in range(n_MC):
@@ -167,8 +169,9 @@ def train_one_task_without_GD(
         # Compute the complexity term (noised prior can be set false)
         complexity = get_KLD(prior_model, post_model, prm, noised_prior=True)
 
-        loss = avg_empiric_loss + prm.lambda_low * complexity
+        loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
         # added by Bojian
+        optimizer_post.zero_grad()
         d_L_low_d_post += gather_flat_grad(grad(loss, post_model.parameters(), create_graph=True))
         # second_derivative = gather_flat_grad(grad(d_L_low_d_post, post_model.parameters(),
         #      grad_outputs=torch.ones(num_weights, device=prm.device), retain_graph=True))
@@ -180,26 +183,27 @@ def train_one_task_without_GD(
         # model_freeze(post_model)
         # log
         # if _ + 1 == prm.max_inner:
-        if (_ + 1) % 2 == 0:
-            model_num = prm.model_num if prm.method == "ours_sample" else prm.N_subtask
-            logger.info(
-                "Epoch=[{}/{}], Inner Loop Task=[{}/{}], Inner Step=[{}/{}], DIS_LOSS = {}, CLS_LOSS = {}, TOTAL_LOSS = {}".format(
-                    epoch_id + 1,
-                    prm.training_epoch,
-                    task_index + 1,
-                    model_num,
-                    _ + 1,
-                    prm.max_inner,
-                    complexity.item(),
-                    avg_empiric_loss.item(),
-                    loss.item(),
-                )
+        # if (_ + 1) % 2 == 0:
+        model_num = prm.model_num if prm.method == "ours_sample" else prm.N_subtask
+        logger.info(
+            "Epoch=[{}/{}], Inner Loop Task=[{}/{}], Inner Step=[{}/{}], "
+            "DIS_LOSS = {:.4f}, CLS_LOSS = {:.4f}, TOTAL_LOSS = {:.4f}".format(
+                epoch_id + 1,
+                prm.training_epoch,
+                task_index + 1,
+                model_num,
+                _ + 1,
+                max_inner,
+                complexity.item(),
+                avg_empiric_loss.item(),
+                loss.item(),
             )
-            if prm.use_wandb and task_index <= 5:
-                name = prm.method + "_task_" + str(task_index) + "_all_loss"
-                wandb.log({name: loss.item()}, commit=False)
+        )
+        if prm.use_wandb and task_index <= 5:
+            name = prm.method + "_task_" + str(task_index) + "_all_loss"
+            wandb.log({name: loss.item()}, commit=False)
 
-    return d_L_low_d_post / prm.max_inner  # added by Bojian
+    return d_L_low_d_post / max_inner  # added by Bojian
 
 
 def update_meta_prior(list_of_post_model,
@@ -211,6 +215,8 @@ def update_meta_prior(list_of_post_model,
                       val_loader,  # added by Bojian
                       up_params,  # added by Bojian
                       optimizer_prior, prm, epoch_id):
+
+    logger.info('--------------Optimize the prior model-------------')
     for _ in range(prm.max_outer):
 
         model_activate(prior_model)
@@ -218,13 +224,7 @@ def update_meta_prior(list_of_post_model,
             model_activate(post_model)
             post_model.train()
 
-        complexity = 0.0
         kld_list = []
-        # complexity_list = []
-        val_loss_list = []
-        up_loss_list = []
-
-        # back+prob with posterior
 
         # prior_model.train()
         # for optimizer_post in list_optimizer_post:
@@ -234,6 +234,7 @@ def update_meta_prior(list_of_post_model,
         # optimizer_hyper.zero_grad()
 
         if prm.is_bilevel:
+            # initialize the gradient of L_up w.r.t prior model and post models
             num_weights_prior = sum(p.numel() for p in prior_model.parameters())
             num_weights_post = sum(p.numel() for p in list_of_post_model[0].parameters())
             d_L_up_d_prior = torch.zeros(num_weights_prior, device=prm.device)
@@ -251,27 +252,26 @@ def update_meta_prior(list_of_post_model,
                 list_d_L_up_d_post[idx_post] += \
                     gather_flat_grad(grad(kld, post_model.parameters(), retain_graph=True))
         complexity = complexity / len(list_of_post_model)
-        # complexity_list.append(complexity.detach().numpy())
 
-        if not prm.is_bilevel:  # FAMS original code
+        if not prm.is_bilevel:  # FAMS original code, directly use KL divergence as loss to bp prior model
             optimizer_prior.zero_grad()
             complexity.backward()
             optimizer_prior.step()
-        else:
+        else:  # calculate the direct and indirect gradient for prior model and hyperparameters
             val_loss = 0
             for val_data, val_targets in val_loader:
                 val_data, val_targets = val_data.to(prm.device), val_targets.to(prm.device)
                 val_output = prior_model(val_data)
                 val_loss += up_loss_criterion(val_output, val_targets, up_params)
-                #val_loss_list.append(val_loss.detach().numpy())
             val_loss = val_loss / len(val_loader)
-            up_loss = prm.lambda_up * val_loss + (1-prm.lambda_up) * complexity
-            # up_loss_list.append(up_loss.detach().numpy())
+            if prm.no_KL:
+                up_loss = val_loss
+            else:
+                up_loss = prm.lambda_up * val_loss + (1-prm.lambda_up) * complexity
 
             optimizer_prior.zero_grad()
             d_L_up_d_prior += \
                 gather_flat_grad(grad(up_loss, prior_model.parameters(), retain_graph=True))
-
 
             # d_L_up_d_prior /= len(val_loader)
             # list_d_L_up_d_post = [d_L_up_d_post / len(val_loader)
@@ -279,43 +279,48 @@ def update_meta_prior(list_of_post_model,
 
             preconditioner = neumann_hyperstep_preconditioner(
                 torch.mean(torch.stack(list_d_L_up_d_post), dim=0),
-                list_d_L_low_d_post, 1.0, 5,
+                list_d_L_low_d_post, 0.1, 10,
                 list_of_post_model, prm)
 
-            indirect_grad_prior = torch.zeros(num_weights_prior, device=prm.device)
-            for idx, d_L_low_d_post in enumerate(list_d_L_low_d_post):
-                prior_model.zero_grad()
-                indirect_grad_prior += gather_flat_grad(
-                    grad(d_L_low_d_post,
-                         prior_model.parameters(),
-                         grad_outputs=preconditioner.view(-1),
-                         retain_graph=True,
-                         create_graph=True,
-                         allow_unused=True))
+            if prm.no_indirect_grad:
+                prior_grad = d_L_up_d_prior  # direct gradient
+            else:
+                indirect_grad_prior = torch.zeros(num_weights_prior, device=prm.device)
+                for d_L_low_d_post in list_d_L_low_d_post:
+                    prior_model.zero_grad()
+                    indirect_grad_prior += gather_flat_grad(
+                        grad(d_L_low_d_post,
+                             prior_model.parameters(),
+                             grad_outputs=preconditioner.view(-1),
+                             # retain_graph=True,
+                             create_graph=True,
+                             allow_unused=True))
 
-            prior_grad = d_L_up_d_prior# - indirect_grad_prior
+                prior_grad = prm.lambda_up * d_L_up_d_prior - (1 - prm.lambda_up) * indirect_grad_prior
 
-            indirect_grad_hyper = torch.zeros(4, device=prm.device)
+            # we have two hyperparameters, ly and dy,
+            # each of which has the dimension of output_dim
+            indirect_grad_hyper = torch.zeros(2 * prm.output_dim, device=prm.device)
             for d_L_low_d_post in list_d_L_low_d_post:
                 optimizer_hyper.zero_grad()
                 indirect_grad_hyper += gather_flat_grad(
                     grad(d_L_low_d_post,
                          get_trainable_hyper_params(up_params),
                          grad_outputs=preconditioner.view(-1),
-                         retain_graph=True,
+                         # retain_graph=True,
                          create_graph=True,
                          allow_unused=True))
 
             hyper_grad = -indirect_grad_hyper
 
             # complexity.backward()
-            optimizer_hyper.zero_grad()
-            assign_gradient(up_params, hyper_grad, prm.num_classes)
-            optimizer_hyper.step()
-
             optimizer_prior.zero_grad()
             assign_gradient(prior_model.parameters(), prior_grad, prm.num_classes)
             optimizer_prior.step()
+
+            optimizer_hyper.zero_grad()
+            assign_gradient(up_params, hyper_grad, prm.num_classes)
+            optimizer_hyper.step()
 
         # if _ + 1 == prm.max_outer:
         if (_ + 1) % 1 == 0:
@@ -324,7 +329,7 @@ def update_meta_prior(list_of_post_model,
             if prm.is_bilevel:
                 logger.info(
                     "Epoch=[{}/{}], Outer Loop Step=[{}/{}], "
-                    "Complexity = {}, Val Loss = {}, All Up Loss = {}".format(
+                    "Complexity = {:.4f}, Val Loss = {:.4f}, All Up Loss = {:.4f}".format(
                         epoch_id + 1, prm.training_epoch, _ + 1, prm.max_outer,
                         complexity, val_loss, up_loss
                     )
@@ -332,7 +337,7 @@ def update_meta_prior(list_of_post_model,
             else:
                 logger.info(
                     "Epoch=[{}/{}], Outer Loop Step=[{}/{}], "
-                    "Complexity = {}".format(
+                    "Complexity = {:.4f}".format(
                         epoch_id + 1, prm.training_epoch, _ + 1, prm.max_outer,
                         complexity
                     )
@@ -434,6 +439,9 @@ def training_task_batches(
     logger.info(
         f"current post optimizer lr={list_of_post_optimizer[0].param_groups[0]['lr']}"
     )
+    logger.info(
+        f"current hyper optimizer lr={optimizer_hyper.param_groups[0]['lr']}"
+    )
 
 
 def update_meta_post(list_of_post_model, prior_model, ratio):
@@ -443,14 +451,32 @@ def update_meta_post(list_of_post_model, prior_model, ratio):
             list_of_post_model[i] = copy.deepcopy(prior_model)
 
 
-def train_ours(prm, prior_model,
-               low_loss_criterion,  # added by Bojian
-               up_loss_criterion,  # added by Bojian
-               # loss_criterion,     # commented by Bojian
+def train_ours(prm,
                X_train, A_train, y_train,
                X_val, A_val, y_val,  # added by Bojian
                X_test=None, A_test=None, y_test=None):
-    # prior model
+
+    # Training Components
+    # loss_criterion = nn.BCELoss()
+    if prm.manual_adjust:
+        low_loss_criterion = loss_adjust_cross_entropy_manual
+    else:
+        low_loss_criterion = loss_adjust_cross_entropy
+    up_loss_criterion = cross_entropy
+
+    # create the prior model
+    prior_model = get_model(prm)
+
+    # initial test
+    predict = inference(prior_model, X_test, prm)
+    accuracy, b_acc = compute_accuracy(y_test, predict, 0.5, prm.output_dim)
+    logger.info("The initial overall accuracy is:          {:.4f}".format(accuracy))
+    logger.info("The initial overall balanced accuracy is: {:.4f}".format(b_acc))
+    if prm.use_wandb:
+        wandb_dict = result_wandb(y_test, predict, A_test, prm)
+        wandb.log(wandb_dict)
+
+    # optimizer for prior model
     optimizer_prior = optim.Adagrad(prior_model.parameters(), lr=prm.lr_prior)
     # optimizer schedular
     optimizer_prior_schedular = PriorExponentialLR(
@@ -473,7 +499,7 @@ def train_ours(prm, prior_model,
     up_params = [dy, ly, w_val]
 
     optimizer_hyper = optim.SGD(params=[{'params': dy}, {'params': ly}],
-                                lr=0.01, momentum=0.9, weight_decay=5e-4)
+                                lr=0.001, momentum=0.9, weight_decay=5e-4)
     # optimizer schedular
     optimizer_hyper_schedular = PriorExponentialLR(
         optimizer_hyper, prm.training_epoch)
@@ -493,10 +519,7 @@ def train_ours(prm, prior_model,
     for epoch_id in range(prm.training_epoch):
 
         batch_train = [
-            sample_batch_sen_idx(
-                X_train, A_train, y_train, prm, np.unique(A_train)[
-                    t_num]
-            )
+            sample_batch_sen_idx(X_train, A_train, y_train, prm, np.unique(A_train)[t_num])
             for t_num in range(prm.N_subtask)
         ]
 
@@ -534,17 +557,19 @@ def train_ours(prm, prior_model,
                 "The training time for one epoch is: {}".format(
                     str(datetime.timedelta(seconds=ss_time)))
             )
+
             predict = inference(prior_model, X_test, prm)
             accuracy, b_acc = compute_accuracy(y_test, predict, 0.5, prm.output_dim)
-            # b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
-            logger.info(
-                "The overall accuracy of EPOCH [{}] is: {}".format(
-                    epoch_id, accuracy)
-            )
-            logger.info(
-                "The overall balanced accuracy of EPOCH [{}] is: {}".format(
-                    epoch_id, b_acc)
-            )
+            DP_score = demographic_parity(predict, A_test)
+            EO_score = equalized_odds(predict, y_test, A_test)
+            suf_gap_avg_score = standard_suf_gap_all(predict, y_test, A_test, prm)
+
+            logger.info("The accuracy of EPOCH [{}] is:                 {:.4f}".format(epoch_id+1, accuracy))
+            logger.info("The balanced acc of EPOCH [{}] is:             {:.4f}".format(epoch_id+1, b_acc))
+            logger.info("The demographic parity score of EPOCH [{}] is: {:.4f}".format(epoch_id+1, DP_score))
+            logger.info("The equalized odds score of EPOCH [{}] is:     {:.4f}".format(epoch_id+1, EO_score))
+            logger.info("The group sufficiency gap of EPOCH [{}] is:    {:.4f}".format(epoch_id+1, suf_gap_avg_score))
+
             if prm.use_wandb:
                 wandb_dict = result_wandb(y_test, predict, A_test, prm)
                 wandb.log(wandb_dict, commit=False)
@@ -559,13 +584,37 @@ def train_ours(prm, prior_model,
                 np.save(osp.join(npy_dir, npy_file_pre + "_testA.npy"), A_test)
                 np.save(osp.join(npy_dir, npy_file_pre + "_predict.npy"), predict)
 
+    return prior_model
 
-def train(
-        prm,
-        prior_model,
-        low_loss_criterion,  # added by Bojian
-        up_loss_criterion,  # added by Bojian
-        # loss_criterion,    # commented by Bojian
+
+def train_ERM(prm,
+               X_train, A_train, y_train,
+               X_val, A_val, y_val,  # added by Bojian
+               X_test, A_test, y_test):
+
+    logger.info('==================train trivial ERM===================')
+    model_erm = get_model(prm, model_type='Standard')
+    optimizer_erm = optim.Adagrad(model_erm.parameters(), lr=0.001)
+    data_train = torch.utils.data.TensorDataset(
+        torch.FloatTensor(torch.from_numpy(X_train).float()),
+        torch.LongTensor(y_train))
+    train_loader = DataLoader(data_train, batch_size=50, shuffle=True)
+
+    model_erm.train()
+    for epoch_id in range(prm.training_epoch):
+
+        model_activate(model_erm)
+        for data, targets in train_loader:
+            data, targets = data.to(prm.device), targets.to(prm.device)
+            output = model_erm(data)
+            loss = cross_entropy(output, targets)
+            loss.backward()
+            optimizer_erm.step()
+
+    return
+
+
+def train(prm,
         X_train, A_train, y_train,
         X_val, A_val, y_val,  # added by Bojian
         X_test=None,
@@ -586,29 +635,21 @@ def train(
             name=wandb_name,
         )
 
-    # initial test
-    predict = inference(prior_model, X_test, prm)
-    accuracy, b_acc = compute_accuracy(y_test, predict, 0.5, prm.output_dim)
-    # b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
-    logger.info("The Initial overall accuracy is: {}".format(accuracy))
-    logger.info("The Initial overall balanced accuracy is: {}".format(b_acc))
-    if prm.use_wandb:
-        wandb_dict = result_wandb(y_test, predict, A_test, prm)
-        wandb.log(wandb_dict)
-
-    # wandb.finish()
-
-    # training switch
-
-    # train_ours(prm, prior_model, loss_criterion, X_train,
-    #             A_train, y_train, X_test, A_test, y_test)
-    train_ours(prm, prior_model, low_loss_criterion, up_loss_criterion,
+    if prm.is_ERM:
+        model = train_ERM(prm,
                X_train, A_train, y_train,
                X_val, A_val, y_val,  # added by Bojian
                X_test, A_test, y_test)
+    else:
+        model = train_ours(prm,
+                   X_train, A_train, y_train,
+                   X_val, A_val, y_val,  # added by Bojian
+                   X_test, A_test, y_test)
 
     if prm.use_wandb:
         wandb.finish()
+
+    return model
 
 
 # ----------------------------------------------------------------------------------------------

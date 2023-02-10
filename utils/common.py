@@ -105,8 +105,8 @@ def loss_adjust_cross_entropy(logits, targets, params):
     ly = params[1]
     # logits = torch.Tensor.double(logits)
     # targets = torch.LongTensor(targets)
-    # new_logits = logits * torch.sigmoid(dy) + ly
-    new_logits = logits + ly
+    new_logits = logits * torch.sigmoid(dy) + ly
+    # new_logits = logits + ly
     if len(params) == 3:
         wy = params[2]
         loss = F.cross_entropy(new_logits, targets, weight=wy)
@@ -124,8 +124,8 @@ def loss_adjust_cross_entropy_manual(logits, targets, param):
     return loss
 
 
-def cross_entropy(logits, targets, params=[], group_size=1):
-    if len(params) == 3:
+def cross_entropy(logits, targets, params=None):
+    if params and len(params) == 3:
         return F.cross_entropy(logits, targets, weight=params[2])
     else:
         return F.cross_entropy(logits, targets)
@@ -166,8 +166,11 @@ def neumann_hyperstep_preconditioner(mean_d_L_up_d_post,  # mean over all the d_
         for d_L_low_d_post, post_model in zip(list_d_L_low_d_post, list_post_model):
             # torch.autograd.set_detect_anomaly(True)
             hessian_term += gather_flat_grad(
-                           grad(d_L_low_d_post, post_model.parameters(),
-                           grad_outputs=counter.view(-1), retain_graph=True, create_graph=True, allow_unused=True))
+                            grad(d_L_low_d_post, post_model.parameters(),
+                                 grad_outputs=counter.view(-1),
+                                 retain_graph=True,
+                                 create_graph=True,
+                                 allow_unused=True))
         counter = old_counter - elementary_lr * hessian_term
         preconditioner = preconditioner + counter
         i += 1

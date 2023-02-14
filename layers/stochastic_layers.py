@@ -22,6 +22,7 @@ class StochasticLayer(nn.Module):
             self.weights_count = self.weights_count + bias_size
         self.w_mu = get_param(weights_shape)
         self.w_log_var = get_param(weights_shape)
+        # self.w_log_var = get_param_var(weights_shape)  # added by Bojian
         self.w = {'mean': self.w_mu, 'log_var': self.w_log_var}
         if bias_size is not None:
             self.b_mu = get_param(bias_size)
@@ -102,3 +103,10 @@ def get_param(shape):
     if isinstance(shape, int):
         shape = (shape,)
     return nn.Parameter(torch.empty(*shape))
+
+
+def get_param_var(shape):
+    # create a parameter
+    if isinstance(shape, int):
+        shape = (shape,)
+    return nn.Parameter(torch.ones(*shape))

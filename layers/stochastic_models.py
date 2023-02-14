@@ -19,6 +19,8 @@ def count_weights(model):
         if isinstance(m, nn.Linear):
             count += list_mult(m.weight.shape)
             if hasattr(m, 'bias'):
+                if m.bias == None:
+                    continue
                 count = count + list_mult(m.bias.shape)
         elif isinstance(m, StochasticLayer):
             count += m.weights_count
@@ -44,6 +46,8 @@ def get_model(prm, model_type='Stochastic'):
         model = FcNet3(model_type, model_name, linear_layer, prm)
     elif model_name == 'FcNet4':
         model = FcNet4(model_type, model_name, linear_layer, prm)
+    # elif model_name == 'ConvNet3':
+    #     model = ConvNet3()
     else:
         raise ValueError('Invalid model_name')
 
@@ -103,6 +107,8 @@ class FcNet3(general_model):
         # self._init_weights(log_var_init)  # Initialize weights
 
     def forward(self, x):
+        if len(x.shape) == 4:
+            x = x.view(-1, x.shape[1]*x.shape[-2]*x.shape[-1])
         x = self.fc1(x)
         x = F.elu(x)
         x = self.fc2(x)
@@ -136,6 +142,8 @@ class FcNet4(general_model):
         # self._init_weights(log_var_init)  # Initialize weights
 
     def forward(self, x):
+        if len(x.shape) == 4:
+            x = x.view(-1, x.shape[1]*x.shape[-2]*x.shape[-1])
         x = self.fc1(x)
         x = F.elu(x)
         x = self.fc2(x)
@@ -147,3 +155,41 @@ class FcNet4(general_model):
         return x
 
 
+# class ConvNet3(nn.Module):
+#     def __init__(self, in_channels=3):
+#         super(ConvNet3, self).__init__()
+#         self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=32, kernel_size=3, stride=1, bias=True)
+#         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, bias=True)
+#         self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, bias=True)
+#         self.Pool_en = nn.AvgPool2d(4)
+#
+#         self.drop_fc = nn.Dropout(0.5)
+#         self.activ = nn.Sigmoid()
+#         self.activ_pred = nn.ReLU()
+#
+#         self.bn1 = nn.BatchNorm1d(32)
+#         self.bn2 = nn.BatchNorm1d(32)
+#
+#         self.surv_pred1 = nn.Linear(128, 32)
+#         self.surv_pred2 = nn.Linear(32, 32)
+#         self.surv_pred3 = nn.Linear(32, 1, bias=False)
+#
+#         self.drop_conv = nn.Dropout(0.5)
+#         self.drop_fc = nn.Dropout(0.5)
+#         self.Pool = nn.MaxPool2d(3)
+#         self.activ = nn.Sigmoid()
+#
+#         self.bn1_conv = nn.BatchNorm2d(32)
+#         self.bn2_conv = nn.BatchNorm2d(64)
+#         self.bn3_conv = nn.BatchNorm2d(128)
+#
+#     def forward(self, x):
+#         x = self.bn1_conv(self.drop_conv(self.activ(self.conv1(x.unsqueeze(1)))))
+#         x = self.bn2_conv(self.drop_conv(self.Pool(self.activ(self.conv2(x)))))
+#         x = self.bn3_conv(self.drop_conv(self.Pool(self.activ(self.conv3(x)))))
+#         x_en = self.Pool_en(x).squeeze()
+#         x = x_en.view(x.shape[0], -1)
+#         x = self.bn1(self.activ(self.surv_pred1(x)))
+#         x = self.bn2(self.activ(self.surv_pred2(x)))
+#         x = self.activ_pred(self.surv_pred3(x))
+#         return x, x_en

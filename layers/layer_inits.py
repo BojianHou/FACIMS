@@ -37,5 +37,7 @@ def init_module(m, log_var_init):
     # Linear stochastic
     elif isinstance(m, StochasticLinear):
         init_stochastic_linear(m, log_var_init)
+    else:
+        pass
 
 

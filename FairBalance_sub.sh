@@ -9,15 +9,15 @@ for dataset in tadpole toxic
 do
     echo "Processing dataset $dataset..."
 
-    for method in 1 2 3 4 5 6
+    for method in 8  # 1 2 3 4 5 6
     do
         echo "Running method $method..."
 
-        for lr_prior in 0.1 0.01 0.001 0.0001
+        for lr_prior in 0.1 0.01  #0.1 0.01 0.001
         do
             echo "learning rate for prior model $lr_prior"
 
-            for lr_post in 0.4 0.1 0.01
+            for lr_post in 0.1 0.01
             do
                 echo "learning rate for post model $lr_post"
                 jid=$(qsub \

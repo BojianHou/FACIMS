@@ -132,6 +132,9 @@ def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
     # groups_pred_prob = np.zeros((num_A, n_bins))
 
     # y_hat = softmax(y_hat, axis=1)  # added by Bojian
+
+    # if the output logits are all 0, replace them with 0.5 to prevent the divider contains 0
+    y_hat[np.where(y_hat.sum(1) == 0)[0]] = [0.5] * prm.output_dim
     y_hat = y_hat / np.concatenate([[y_hat.sum(1)], [y_hat.sum(1)]]).T  # normalize
     # y_hat = y_hat.max(1)  # added by Bojian
     y_hat = y_hat[:,-1]
@@ -211,8 +214,11 @@ def equalized_odds(predictions, truth, sensitive_features):
     return np.mean(np.abs(all_true_pos_r - group_true_pos_r))
 
 
-def demographic_parity(predictions, sensitive_features):
+def demographic_parity(predictions, sensitive_features, prm):
     # measure the difference between the expectation of prediction between groups
+
+    # if the output logits are all 0, replace them with 0.5 to prevent the divider contains 0
+    predictions[np.where(predictions.sum(1) == 0)[0]] = [0.5] * prm.output_dim
     predictions = predictions / np.concatenate([[predictions.sum(1)], [predictions.sum(1)]]).T  # normalize
     predictions = predictions[:, -1]
 
@@ -230,7 +236,7 @@ def result_show(y_test, predict, A_test, prm):
     # logger.info("=============== Accuracy =============")
     accuracy, b_acc = compute_accuracy(y_test, predict, prm.acc_bin, prm.output_dim)
     # logger.info("=============== Demographic Parity =============")
-    DP_score = demographic_parity(predict, A_test)
+    DP_score = demographic_parity(predict, A_test, prm)
     # logger.info("=============== Equalized Odds =============")
     EO_score = equalized_odds(predict, y_test, A_test)
     # logger.info("=============== Sufficient Gap =============")
@@ -258,3 +264,8 @@ def result_wandb(y_test, predict, A_test, prm):
         "suf_gap_avg": suf_gap_avg_score,
     }
     return wandb_dict
+
+
+def gather_results():
+
+    return

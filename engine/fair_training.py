@@ -26,6 +26,7 @@ from utils.common import model_activate, model_freeze
 from utils.postprocessing import demographic_parity, equalized_odds, standard_suf_gap_all
 from utils.common import cross_entropy, loss_adjust_cross_entropy
 from utils.common import loss_adjust_cross_entropy_manual
+from utils.sharp_strategy import SAM
 
 logger = logging.getLogger("fair")
 
@@ -72,8 +73,6 @@ def train_one_task(
         n_MC = prm.n_MC
         inputs, targets = batch
 
-        optimizer_post.zero_grad()  # position changed by Bojian, once before loss.backward()
-
         # Monte-Carlo loop in estimation prediction loss
         for i_MC in range(n_MC):
             # Empirical Loss on current task:
@@ -88,14 +87,34 @@ def train_one_task(
 
         loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
 
-        loss.backward()
-        optimizer_post.step()
+        optimizer_post.zero_grad()
+        loss.backward()  # calculate the gradient for the original parameters w
+        if prm.sharp_strategy:
+            optimizer_post.first_step(zero_grad=True)  # calculate the epsilon and add it to w
+            # use the disturbed new w to do forward process
+            avg_empiric_loss = 0
+            for i_MC in range(n_MC):
+                # Empirical Loss on current task:
+                outputs = post_model(inputs)
+                avg_empiric_loss_curr = loss_criterion(outputs, targets, low_params)
+                avg_empiric_loss = avg_empiric_loss + \
+                                   (1 / n_MC) * avg_empiric_loss_curr
+
+            # Compute the complexity term (noised prior can be set false)
+            complexity = get_KLD(prior_model, post_model, prm, noised_prior=True)
+
+            loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
+            optimizer_post.zero_grad()
+            loss.backward()
+            optimizer_post.second_step(zero_grad=True)
+        else:
+            optimizer_post.step()
 
         # freeze the posterior model
         model_freeze(post_model)
         # log
-        # if _ + 1 == prm.max_inner:
-        if (_ + 1) % 1 == 0:
+        if _ + 1 == prm.max_inner:
+        # if (_ + 1) % 2 == 0:
             model_num = prm.model_num if prm.method == "ours_sample" else prm.N_subtask
             logger.info(
                 "Epoch=[{}/{}], Inner Loop Task=[{}/{}], Inner Step=[{}/{}], "
@@ -322,8 +341,8 @@ def update_meta_prior(list_of_post_model,
             assign_gradient(up_params, hyper_grad, prm.num_classes)
             optimizer_hyper.step()
 
-        # if _ + 1 == prm.max_outer:
-        if (_ + 1) % 1 == 0:
+        if _ + 1 == prm.max_outer:
+        # if (_ + 1) % 1 == 0:
             # complexity_str = "; ".join(complexity_list)
 
             if prm.is_bilevel:
@@ -477,7 +496,11 @@ def train_ours(prm,
         wandb.log(wandb_dict)
 
     # optimizer for prior model
+    # if prm.sharp_strategy:
+    #     optimizer_prior = SAM(base_optimizer=optim.Adagrad, params=prior_model.parameters(), lr=prm.lr_prior)
+    # else:
     optimizer_prior = optim.Adagrad(prior_model.parameters(), lr=prm.lr_prior)
+
     # optimizer schedular
     optimizer_prior_schedular = PriorExponentialLR(
         optimizer_prior, prm.training_epoch)
@@ -498,6 +521,10 @@ def train_ours(prm,
         low_params = [dy, ly, w_train]
     up_params = [dy, ly, w_val]
 
+    # if prm.sharp_strategy:
+    #     optimizer_hyper = SAM(base_optimizer=optim.SGD, params=[{'params': dy}, {'params': ly}],
+    #                                 lr=0.001, momentum=0.9, weight_decay=5e-4)
+    # else:
     optimizer_hyper = optim.SGD(params=[{'params': dy}, {'params': ly}],
                                 lr=0.001, momentum=0.9, weight_decay=5e-4)
     # optimizer schedular
@@ -507,10 +534,17 @@ def train_ours(prm,
     # post model
     model_num = prm.N_subtask
     post_models = [get_model(prm) for _ in range(model_num)]
-    list_optimizer_post = [
-        optim.Adagrad(post_model.parameters(), lr=prm.lr_post)
-        for post_model in post_models
-    ]
+
+    if prm.sharp_strategy:
+        list_optimizer_post = [
+            SAM(base_optimizer=optim.Adagrad, params=post_model.parameters(), lr=prm.lr_post)
+            for post_model in post_models
+        ]
+    else:
+        list_optimizer_post = [
+            optim.Adagrad(post_model.parameters(), lr=prm.lr_post)
+            for post_model in post_models
+        ]
     list_optimizer_post_schedular = [
         PostMultiStepLR(list_optimizer_post[i], prm.training_epoch)
         for i in range(model_num)
@@ -559,16 +593,8 @@ def train_ours(prm,
             )
 
             predict = inference(prior_model, X_test, prm)
-            accuracy, b_acc = compute_accuracy(y_test, predict, 0.5, prm.output_dim)
-            DP_score = demographic_parity(predict, A_test)
-            EO_score = equalized_odds(predict, y_test, A_test)
-            suf_gap_avg_score = standard_suf_gap_all(predict, y_test, A_test, prm)
 
-            logger.info("The accuracy of EPOCH [{}] is:                 {:.4f}".format(epoch_id+1, accuracy))
-            logger.info("The balanced acc of EPOCH [{}] is:             {:.4f}".format(epoch_id+1, b_acc))
-            logger.info("The demographic parity score of EPOCH [{}] is: {:.4f}".format(epoch_id+1, DP_score))
-            logger.info("The equalized odds score of EPOCH [{}] is:     {:.4f}".format(epoch_id+1, EO_score))
-            logger.info("The group sufficiency gap of EPOCH [{}] is:    {:.4f}".format(epoch_id+1, suf_gap_avg_score))
+            result_show_in_epoch(y_test, predict, A_test, prm, epoch_id)
 
             if prm.use_wandb:
                 wandb_dict = result_wandb(y_test, predict, A_test, prm)
@@ -588,9 +614,9 @@ def train_ours(prm,
 
 
 def train_ERM(prm,
-               X_train, A_train, y_train,
-               X_val, A_val, y_val,  # added by Bojian
-               X_test, A_test, y_test):
+              X_train, A_train, y_train,
+              X_val, A_val, y_val,  # added by Bojian
+              X_test, A_test, y_test):
 
     logger.info('==================train trivial ERM===================')
     model_erm = get_model(prm, model_type='Standard')
@@ -603,6 +629,7 @@ def train_ERM(prm,
     model_erm.train()
     for epoch_id in range(prm.training_epoch):
 
+        time_s = time.time()
         model_activate(model_erm)
         for data, targets in train_loader:
             data, targets = data.to(prm.device), targets.to(prm.device)
@@ -611,7 +638,20 @@ def train_ERM(prm,
             loss.backward()
             optimizer_erm.step()
 
-    return
+        time_e = time.time()
+        if epoch_id % prm.train_inf_step == 0:
+            ss_time = time_e - time_s
+            logger.info("The training time for one epoch is: {}".format(
+                    str(datetime.timedelta(seconds=ss_time))))
+            logger.info(
+                "Epoch=[{}/{}], Loss={:.4f}".format(
+                    epoch_id + 1, prm.training_epoch, loss.item()
+                )
+            )
+            predict = inference(model_erm, X_test, prm)
+            result_show_in_epoch(y_test, predict, A_test, prm, epoch_id)
+
+    return model_erm
 
 
 def train(prm,
@@ -680,3 +720,16 @@ def inference(model, inputs, prm, n_Mc=5):
     result = output_final.data.cpu().numpy()
 
     return result
+
+
+def result_show_in_epoch(y_test, predict, A_test, prm, epoch_id):
+    accuracy, b_acc = compute_accuracy(y_test, predict, 0.5, prm.output_dim)
+    DP_score = demographic_parity(predict, A_test, prm)
+    EO_score = equalized_odds(predict, y_test, A_test)
+    suf_gap_avg_score = standard_suf_gap_all(predict, y_test, A_test, prm)
+
+    logger.info("The accuracy of EPOCH [{}] is:                 {:.4f}".format(epoch_id + 1, accuracy))
+    logger.info("The balanced acc of EPOCH [{}] is:             {:.4f}".format(epoch_id + 1, b_acc))
+    logger.info("The demographic parity score of EPOCH [{}] is: {:.4f}".format(epoch_id + 1, DP_score))
+    logger.info("The equalized odds score of EPOCH [{}] is:     {:.4f}".format(epoch_id + 1, EO_score))
+    logger.info("The group sufficiency gap of EPOCH [{}] is:    {:.4f}".format(epoch_id + 1, suf_gap_avg_score))

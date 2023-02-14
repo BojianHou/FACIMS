@@ -42,8 +42,6 @@ def main(prm):
         os.makedirs(log_dir)
     logger = TxtLogger(filename=osp.abspath(osp.join(log_dir, log_file)))
 
-    # stochastic/snn setting
-    # prm.device = torch.device("cuda")
     prm.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")  # added by Bojian
     # prm.device = 'cpu'
     prm.log_var_init = {"mean": prm.log_var_init_mean, "std": prm.log_var_init_var}
@@ -59,6 +57,17 @@ def main(prm):
     
     # Data Decrease for toxic - mimic small data size situation on toxic dataset
     if prm.dataset == "toxic":
+        A_train_index = []
+        for s in np.unique(A_train):
+            A_train_index += np.random.choice(
+                np.where(A_train == s)[0],
+                size=400,
+                replace=(len(np.where(A_train == s)[0]) < 400),
+            ).tolist()
+        A_train = A_train[A_train_index]
+        X_train = X_train[A_train_index]
+        y_train = y_train[A_train_index]
+    elif prm.dataset == 'bank':
         A_train_index = []
         for s in np.unique(A_train):
             A_train_index += np.random.choice(
@@ -91,8 +100,11 @@ def main(prm):
         A_train = A_train[A_train_index]
         X_train = X_train[A_train_index]
         y_train = y_train[A_train_index]
-        
-    prm.input_shape = len(X_train[0])
+
+    if len(X_train.shape) == 4:
+        prm.input_shape = X_train.shape[1] * X_train.shape[-2] * X_train.shape[-1]
+    else:
+        prm.input_shape = len(X_train[0])
     prm.output_dim = len(np.unique(y_train))
     # prm.output_dim = 2
     prm.num_classes = len(np.unique(y_train))
@@ -125,6 +137,9 @@ def main(prm):
         prm.no_indirect_grad = True
     elif prm.method == 7:  # trivial ERM
         prm.is_ERM = True
+    elif prm.method == 8:
+        prm.is_bilevel = True
+        prm.sharp_strategy = True
 
     logger.info(prm)
     logger.info("lr_prior={}, lr_post={}, lambda_up={}, "
@@ -173,7 +188,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------
     # BASIC param
     # ----------------------------------------------------------------------------------------------------
-    parser.add_argument("--config", type=str, help="config file", default='EXPS/toxic_template.yml')
+    parser.add_argument("--config", type=str, help="config file", default='EXPS/bank_template.yml')
 
     # parser.add_argument("--method", type=str, help="method name", default="ours")
     # DATASET
@@ -223,10 +238,10 @@ if __name__ == "__main__":
         "--lr_prior",
         type=float,
         help="learning rate for prior model (0.5-1)",
-        default=0.01,
+        default=0.01,  # 0.01
     )
     parser.add_argument(
-        "--lr_post", type=float, help="learning rate for post model", default=0.4
+        "--lr_post", type=float, help="learning rate for post model", default=0.01  # 0.4
     )
     # parser.add_argument(
     #     "--weight",
@@ -325,15 +340,20 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--sharp_strategy", type=bool,
+        help="whether use sharp strategy to flatten the objective landscape",
+        default=True
+    )
+
+    parser.add_argument(
         "--method", type=int,
         help="1: FAMS, 2: FAMS+manual logits adjustment"
              "3: Ours, 4: Ours-KL in up level"
              "5: Ours-indirect grad for global f"
              "6: Ours-KL in up level-indirect grad for global f"
-             "7: trivial ERM",
-        default=1
+             "7: trivial ERM, 8: Ours with sharp strategy",
+        default=3
     )
-
 
     args = parser.parse_args()
 

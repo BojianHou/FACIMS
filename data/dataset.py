@@ -135,9 +135,79 @@ def load_data(prm):
         return load_celeba_features()
     elif prm.dataset == 'tadpole':
         return load_tadpole()
+    elif prm.dataset == 'isic_m':
+        return load_isic_m()
+    elif prm.dataset == 'isic_s':
+        return load_isic_s()
+    elif prm.dataset == 'bank':
+        return load_bank()
     else:
         raise ValueError("Invalid dataset:{}".format(prm.dataset))
 
+
+# ----------------------------------------------------------------------------------------------
+# Bank Dataset
+# ----------------------------------------------------------------------------------------------
+def load_bank():
+    logger.info("Bank dataset Preprocessing ...")
+    data = pd.read_csv('./DATASOURCE/bank/bank_processed.csv')
+    group = data['education'].to_numpy()
+    X = data.drop(columns=['education', 'y']).to_numpy()
+    y = data['y'].to_numpy()
+
+    X_rem, X_test, y_rem, y_test, group_rem, group_test = \
+        train_test_split(X, y, group, test_size=0.3, random_state=42, stratify=y)
+    X_train, X_val, y_train, y_val, group_train, group_val = \
+        train_test_split(X_rem, y_rem, group_rem, test_size=0.3, random_state=42, stratify=y_rem)
+
+    return X_train, X_val, X_test, group_train, group_val, group_test, y_train, y_val, y_test
+
+# ----------------------------------------------------------------------------------------------
+# ISIC Dataset
+# ----------------------------------------------------------------------------------------------
+def load_isic_m():
+    logger.info("ISIC Melanoma dataset Preprocessing ...")
+
+    X = np.load('./DATASOURCE/ISIC_2017/isic_data.npy')
+    label = pd.read_csv('./DATASOURCE/ISIC_2017/ISIC_label.csv')
+    y = label['melanoma'].to_numpy()
+    group = label['sex']
+    group.replace('0', 0, inplace=True)
+    group.replace('1', 1, inplace=True)
+    group.replace('unknown', 2, inplace=True)
+    # group[group == '0'] = 0
+    # group[group == '1'] = 1
+    # group[group == 'unknown'] = 2
+    group = group.to_numpy()
+
+    X_rem, X_test, y_rem, y_test, group_rem, group_test = \
+        train_test_split(X, y, group, test_size=0.3, random_state=42, stratify=y)
+    X_train, X_val, y_train, y_val, group_train, group_val = \
+        train_test_split(X_rem, y_rem, group_rem, test_size=0.3, random_state=42, stratify=y_rem)
+
+    return X_train, X_val, X_test, group_train, group_val, group_test, y_train, y_val, y_test
+
+
+def load_isic_s():
+    logger.info("ISIC Seborrheic dataset Preprocessing ...")
+    X = np.load('./DATASOURCE/ISIC_2017/isic_data.npy')
+    label = pd.read_csv('./DATASOURCE/ISIC_2017/ISIC_label.csv')
+    y = label['seborrheic_keratosis'].to_numpy()
+    group = label['sex']
+    group.replace('0', 0, inplace=True)
+    group.replace('1', 1, inplace=True)
+    group.replace('unknown', 2, inplace=True)
+    # group[group == '0'] = 0
+    # group[group == '1'] = 1
+    # group[group == 'unknown'] = 2
+    group = group.to_numpy()
+
+    X_rem, X_test, y_rem, y_test, group_rem, group_test = \
+        train_test_split(X, y, group, test_size=0.3, random_state=42, stratify=y)
+    X_train, X_val, y_train, y_val, group_train, group_val = \
+        train_test_split(X_rem, y_rem, group_rem, test_size=0.3, random_state=42, stratify=y_rem)
+
+    return X_train, X_val, X_test, group_train, group_val, group_test, y_train, y_val, y_test
 
 # ----------------------------------------------------------------------------------------------
 # Tadpole Dataset

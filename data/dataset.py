@@ -151,8 +151,11 @@ def load_data(prm):
 def load_bank():
     logger.info("Bank dataset Preprocessing ...")
     data = pd.read_csv('./DATASOURCE/bank/bank_processed.csv')
-    group = data['education'].to_numpy()
+    group = data['education']
+    logger.info(f"Grouped Info:\n  {group.value_counts()}")
+    group = group.to_numpy()
     X = data.drop(columns=['education', 'y']).to_numpy()
+    X = StandardScaler().fit_transform(X)
     y = data['y'].to_numpy()
 
     X_rem, X_test, y_rem, y_test, group_rem, group_test = \

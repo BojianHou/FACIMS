@@ -49,7 +49,6 @@ def  get_dvrg_element(post, prior, prm, noised_prior=False):
     if not hasattr(prm, 'divergence_type') or prm.divergence_type == 'KL':
         numerator = (post['mean'] - prior_mean).pow(2) + post_var
         denominator = prior_var
-        assert denominator > 0, 'current prior_var is {}, should be > 0'.format(prior_var)
         div_elem = 0.5 * torch.sum(prior_log_var - post['log_var'] + numerator / denominator - 1)
 
     elif prm.divergence_type in ['W_Sqr', 'W_NoSqr']:

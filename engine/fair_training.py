@@ -27,6 +27,7 @@ from utils.postprocessing import demographic_parity, equalized_odds, standard_su
 from utils.common import cross_entropy, loss_adjust_cross_entropy
 from utils.common import loss_adjust_cross_entropy_manual
 from utils.sharp_strategy import SAM
+import torch.nn.functional as F
 
 logger = logging.getLogger("fair")
 
@@ -537,7 +538,7 @@ def train_ours(prm,
 
     if prm.sharp_strategy:
         list_optimizer_post = [
-            SAM(base_optimizer=optim.Adagrad, params=post_model.parameters(), lr=prm.lr_post)
+            SAM(base_optimizer=optim.Adagrad, rho=prm.rho, params=post_model.parameters(), lr=prm.lr_post)
             for post_model in post_models
         ]
     else:
@@ -654,6 +655,52 @@ def train_ERM(prm,
     return model_erm
 
 
+def train_BERM(prm,
+              X_train, A_train, y_train,
+              X_val, A_val, y_val,  # added by Bojian
+              X_test, A_test, y_test):
+
+    logger.info('==================train Balanced ERM===================')
+    model_berm = get_model(prm, model_type='Standard')
+    optimizer_berm = optim.Adagrad(model_berm.parameters(), lr=0.001)
+    data_train = torch.utils.data.TensorDataset(
+        torch.FloatTensor(torch.from_numpy(X_train).float()),
+        torch.LongTensor(y_train))
+    train_loader = DataLoader(data_train, batch_size=50, shuffle=True)
+
+    class_num = []
+    for i in range(prm.num_classes):
+        class_num.append(np.sum(y_test == i))
+    w = get_val_w(prm.device, class_num)  # weight for cross entropy for different class
+
+    model_berm.train()
+    for epoch_id in range(prm.training_epoch):
+
+        time_s = time.time()
+        model_activate(model_berm)
+        for data, targets in train_loader:
+            data, targets = data.to(prm.device), targets.to(prm.device)
+            output = model_berm(data)
+            loss = F.cross_entropy(output, targets, weight=w)
+            loss.backward()
+            optimizer_berm.step()
+
+        time_e = time.time()
+        if epoch_id % prm.train_inf_step == 0:
+            ss_time = time_e - time_s
+            logger.info("The training time for one epoch is: {}".format(
+                    str(datetime.timedelta(seconds=ss_time))))
+            logger.info(
+                "Epoch=[{}/{}], Loss={:.4f}".format(
+                    epoch_id + 1, prm.training_epoch, loss.item()
+                )
+            )
+            predict = inference(model_berm, X_test, prm)
+            result_show_in_epoch(y_test, predict, A_test, prm, epoch_id)
+
+    return model_berm
+
+
 def train(prm,
         X_train, A_train, y_train,
         X_val, A_val, y_val,  # added by Bojian
@@ -677,9 +724,14 @@ def train(prm,
 
     if prm.is_ERM:
         model = train_ERM(prm,
-               X_train, A_train, y_train,
-               X_val, A_val, y_val,  # added by Bojian
-               X_test, A_test, y_test)
+                   X_train, A_train, y_train,
+                   X_val, A_val, y_val,  # added by Bojian
+                   X_test, A_test, y_test)
+    elif prm.is_BERM:
+        model = train_BERM(prm,
+                  X_train, A_train, y_train,
+                  X_val, A_val, y_val,  # added by Bojian
+                  X_test, A_test, y_test)
     else:
         model = train_ours(prm,
                    X_train, A_train, y_train,

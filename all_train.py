@@ -116,6 +116,7 @@ def main(prm):
     #     prm.manual_adjust = False
 
     prm.is_ERM = False
+    prm.is_BERM = False
     prm.no_KL = False
     prm.no_indirect_grad = False
 
@@ -140,10 +141,14 @@ def main(prm):
     elif prm.method == 8:
         prm.is_bilevel = True
         prm.sharp_strategy = True
+    elif prm.method == 9:
+        prm.is_BERM = True
 
     logger.info(prm)
-    logger.info("lr_prior={}, lr_post={}, lambda_up={}, "
-                "lambda_low={}".format(prm.lr_prior, prm.lr_post, prm.lambda_up, prm.lambda_low))
+    logger.info("data={}, method={}, lr_prior={}, lr_post={}, "
+                "lambda_up={}, lambda_low={}, rho={}".format(
+                        prm.dataset, prm.method, prm.lr_prior, prm.lr_post,
+                        prm.lambda_up, prm.lambda_low, prm.rho))
 
     # train
     # train( prm, prior_model, loss_criterion, X_train, A_train, y_train, X_test, A_test, y_test)
@@ -172,7 +177,10 @@ def main(prm):
 
     time_end = time.time()
     time_duration = time_end - time_start
-    logger.info("The total time for DATA {} and METHOD {} is: {}".format(prm.dataset, prm.method,
+    logger.info("data={}, method={}, lr_prior={}, lr_post={}, lambda_up={}, "
+                "lambda_low={}, rho={}".format(prm.dataset, prm.method, prm.lr_prior,
+                                       prm.lr_post, prm.lambda_up, prm.lambda_low, prm.rho))
+    logger.info("The total time is: {}".format(
             str(datetime.timedelta(seconds=time_duration))))
 
     logger.handlers.clear()
@@ -346,13 +354,20 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--rho", type=float,
+        help="hyper parameter for sharp strategy",
+        default=0.3
+    )
+
+    parser.add_argument(
         "--method", type=int,
         help="1: FAMS, 2: FAMS+manual logits adjustment"
              "3: Ours, 4: Ours-KL in up level"
              "5: Ours-indirect grad for global f"
              "6: Ours-KL in up level-indirect grad for global f"
-             "7: trivial ERM, 8: Ours with sharp strategy",
-        default=3
+             "7: trivial ERM, 8: Ours with sharp strategy"
+             "9: balanced ERM",
+        default=9
     )
 
     args = parser.parse_args()

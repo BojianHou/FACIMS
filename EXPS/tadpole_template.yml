@@ -1,14 +1,14 @@
 # COMMON args
 # method: ours
-model_name: FcNet4
-training_epoch: 80 # 80
+# model_name: FcNet4
+training_epoch: 5 # 80
 batch_size: 50
 # lr_prior: 0.01 # 0.001
 
 #------------------------------------------------------------------------------------
 #DATASET related
 dataset: tadpole
-sens_attrs: race # toxic race 5, religion 5, gender 4, wilds 6, mix 12 
+sens_attrs: race
 N_subtask: 4
 acc_bar: 0.4 # toxic
 lower_rate: 3 # amazon

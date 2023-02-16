@@ -601,17 +601,17 @@ def train_ours(prm,
                 wandb_dict = result_wandb(y_test, predict, A_test, prm)
                 wandb.log(wandb_dict, commit=False)
 
-            if epoch_id == int(prm.training_epoch / 2):
-                npy_dir, npy_file_pre = set_npy(prm, epoch_id)
+            # if epoch_id == int(prm.training_epoch / 2):
+            #     npy_dir, npy_file_pre = set_npy(prm, epoch_id)
+            #
+            #     if not os.path.exists(npy_dir):
+            #         os.makedirs(npy_dir)
+            #
+            #     np.save(osp.join(npy_dir, npy_file_pre + "_testy.npy"), y_test)
+            #     np.save(osp.join(npy_dir, npy_file_pre + "_testA.npy"), A_test)
+            #     np.save(osp.join(npy_dir, npy_file_pre + "_predict.npy"), predict)
 
-                if not os.path.exists(npy_dir):
-                    os.makedirs(npy_dir)
-
-                np.save(osp.join(npy_dir, npy_file_pre + "_testy.npy"), y_test)
-                np.save(osp.join(npy_dir, npy_file_pre + "_testA.npy"), A_test)
-                np.save(osp.join(npy_dir, npy_file_pre + "_predict.npy"), predict)
-
-    return prior_model
+    return (prior_model, post_models)
 
 
 def train_ERM(prm,

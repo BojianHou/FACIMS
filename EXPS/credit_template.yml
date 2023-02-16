@@ -3,13 +3,13 @@
 # model_name: FcNet4
 training_epoch: 80 # 80
 batch_size: 50
-#lr_prior: 0.01  # 0.001
+# lr_prior: 0.01 # 0.001
 
 #------------------------------------------------------------------------------------
 #DATASET related
-dataset: toxic
-sens_attrs: race # toxic race 5, religion 5, gender 4, wilds 6, mix 12 
-N_subtask: 5
+dataset: credit
+sens_attrs: education
+N_subtask: 4
 acc_bar: 0.4 # toxic
 lower_rate: 3 # amazon
 upper_rate: 4 # amazon
@@ -18,12 +18,11 @@ upper_rate: 4 # amazon
 #------------------------------------------------------------------------------------
 # METHOD Specific
 # ours 
-#lr_post: 0.4  # 0.2
-weight: 0.4 # 0.6
-lambda_low: 0.7
-lambda_up: 0.7  # 0.4
-max_inner: 10
-max_outer: 5
+# lr_post: 0.1  # 0.4
+lambda_low: 0.7 # trade-off parameter between loss and KL for post model
+lambda_up: 0.7  # 0.4 trade-off parameter between loss and KL for prior model
+max_inner: 10  # 10
+max_outer: 5  # 5
 divergence_type: W_Sqr  # W_Sqr KL
 kappa_prior: 0.01
 kappa_post: 0.001
@@ -39,7 +38,7 @@ seed: 0
 train_inf_step: 1
 use_wandb: False
 wandb_username: YOURWANDBNAME
-exp_name: toxic_race_example
+exp_name: credit_education_example
 
 #------------------------------------------------------------------------------------
 #POST

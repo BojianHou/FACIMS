@@ -39,7 +39,7 @@ seed: 0
 train_inf_step: 1
 use_wandb: False
 wandb_username: YOURWANDBNAME
-exp_name: toxic_race_example
+exp_name: bank_education_example
 
 #------------------------------------------------------------------------------------
 #POST

@@ -18,11 +18,8 @@ parse()
             -mn)
               model_name=$2;
               shift 2;;
-            -pr)
-              lr_prior=$2;
-              shift 2;;
-            -po)
-              lr_post=$2;
+            -lr)
+              lr=$2;
               shift 2;;
 		esac
 	done
@@ -40,5 +37,5 @@ source activate FairBalance
 
 cd $main_dir
 python -u all_train.py --config EXPS/${dataset}_template.yml \
---method $method --model_name $model_name --lr_prior $lr_prior --lr_post $lr_post \
->${main_dir}/logs/${dataset}/CUBIC/method_${method}_${model_name}_lr_prior_${lr_prior}_lr_post_${lr_post}.log 2>&1
+--method $method --model_name $model_name --lr $lr \
+>${main_dir}/logs/${dataset}/CUBIC/method_${method}_${model_name}_lr_${lr}.log 2>&1

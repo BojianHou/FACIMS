@@ -1,4 +1,4 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import, division#, logger.info_function
 
 import os.path as osp
 import os
@@ -12,19 +12,13 @@ import time
 import datetime
 from data.dataset import load_data
 from data.hypers import CALI_PARAMS
-
 from layers.stochastic_models import get_model
 from engine.fair_training import inference, train
-
-from utils.postprocessing import (
-    result_show,
-)
-
-from utils.loggers import TxtLogger, set_logger, set_npy
+from utils.postprocessing import result_show, compute_accuracy
+from utils.loggers import TxtLogger, set_logger, set_npy, set_npy_new
 from utils.common import seed_setup
-
-
-
+import logging
+import json
 try:
     import wandb
 except Exception as e:
@@ -33,7 +27,6 @@ except Exception as e:
 
 def main(prm):
     time_start = time.time()
-
     seed_setup(prm.seed)
     
     # log setting
@@ -54,48 +47,14 @@ def main(prm):
     logger.info("=============== DATA LOADING =============")
     X_train, X_val, X_test, A_train, A_val, A_test, y_train, y_val, y_test = load_data(prm)
 
-    
-    # Data Decrease for toxic - mimic small data size situation on toxic dataset
-    if prm.dataset == "toxic":
+    # Data Decrease - mimic small data size situation on toxic dataset
+    if prm.dataset == "toxic" or prm.dataset == 'bank' or prm.dataset == 'credit':
         A_train_index = []
         for s in np.unique(A_train):
             A_train_index += np.random.choice(
                 np.where(A_train == s)[0],
                 size=400,
                 replace=(len(np.where(A_train == s)[0]) < 400),
-            ).tolist()
-        A_train = A_train[A_train_index]
-        X_train = X_train[A_train_index]
-        y_train = y_train[A_train_index]
-    elif prm.dataset == 'bank':
-        A_train_index = []
-        for s in np.unique(A_train):
-            A_train_index += np.random.choice(
-                np.where(A_train == s)[0],
-                size=400,
-                replace=(len(np.where(A_train == s)[0]) < 400),
-            ).tolist()
-        A_train = A_train[A_train_index]
-        X_train = X_train[A_train_index]
-        y_train = y_train[A_train_index]
-    elif prm.dataset in ["adult"]:
-        A_train_index = []
-        for s in np.unique(A_train):
-            A_train_index += np.random.choice(
-                np.where(A_train == s)[0],
-                size=500,
-                replace=(len(np.where(A_train == s)[0]) < 500),
-            ).tolist()
-        A_train = A_train[A_train_index]
-        X_train = X_train[A_train_index]
-        y_train = y_train[A_train_index]
-    elif prm.dataset in ["celeba"]:
-        A_train_index = []
-        for s in np.unique(A_train):
-            A_train_index += np.random.choice(
-                np.where(A_train == s)[0],
-                size=200,
-                replace=(len(np.where(A_train == s)[0]) < 200),
             ).tolist()
         A_train = A_train[A_train_index]
         X_train = X_train[A_train_index]
@@ -109,16 +68,11 @@ def main(prm):
     # prm.output_dim = 2
     prm.num_classes = len(np.unique(y_train))
 
-    # if we use bilevel optimization to tackle
-    # imbalance issue by adjusting logits automatically,
-    # we then cannot use manual way to adjust logits
-    # if prm.is_bilevel:
-    #     prm.manual_adjust = False
-
     prm.is_ERM = False
     prm.is_BERM = False
     prm.no_KL = False
     prm.no_indirect_grad = False
+    prm.sharp_strategy = False
 
     if prm.method == 1:  # FAMS
         pass
@@ -138,11 +92,13 @@ def main(prm):
         prm.no_indirect_grad = True
     elif prm.method == 7:  # trivial ERM
         prm.is_ERM = True
-    elif prm.method == 8:
+    elif prm.method == 8:  # ours with sharp strategy
         prm.is_bilevel = True
         prm.sharp_strategy = True
     elif prm.method == 9:
         prm.is_BERM = True
+    elif prm.method == 10: # FAMS with sharp strategy
+        prm.sharp_strategy = True
 
     logger.info(prm)
     logger.info("data={}, method={}, lr_prior={}, lr_post={}, "
@@ -159,32 +115,31 @@ def main(prm):
 
     # evaluation
     logger.info("=============== Inference Process =============")
-
-    predict = inference(model, X_test, prm)
-
-    # save result
-    npy_dir, npy_file_pre = set_npy(prm, prm.training_epoch)
-    if not os.path.exists(npy_dir):
-        os.makedirs(npy_dir)
-
-    np.save(osp.join(npy_dir, npy_file_pre + "_testy.npy"), y_test)
-    np.save(osp.join(npy_dir, npy_file_pre + "_testA.npy"), A_test)
-    np.save(osp.join(npy_dir, npy_file_pre + "_predict.npy"), predict)
-
-    # logger.info("=============== Post Process =============")
-
-    result_show(y_test, predict, A_test, prm)
+    if isinstance(model, tuple):  # model[0] is the prior model, model[1] is the post models
+        predict_prior = inference(model[0], X_test, prm)
+        acc, b_acc, dp, eo, sg = result_show(y_test, predict_prior, A_test, prm)
+        group = np.unique(A_test)
+        X_test_list = [X_test[np.where(A_test == g)[0]] for g in group]
+        y_test_list = [y_test[np.where(A_test == g)[0]] for g in group]
+        predict_post_list = [inference(post_model, X_test_list[idx], prm)
+                             for idx, post_model in enumerate(model[1])]
+        bacc_list = [compute_accuracy(y_test_list[idx], predict_post, prm.acc_bin, prm.output_dim)[1]
+                         for idx, predict_post in enumerate(predict_post_list)]
+    else:
+        predict = inference(model, X_test, prm)
+        acc, b_acc, dp, eo, sg = result_show(y_test, predict, A_test, prm)
 
     time_end = time.time()
     time_duration = time_end - time_start
-    logger.info("data={}, method={}, lr_prior={}, lr_post={}, lambda_up={}, "
-                "lambda_low={}, rho={}".format(prm.dataset, prm.method, prm.lr_prior,
-                                       prm.lr_post, prm.lambda_up, prm.lambda_low, prm.rho))
-    logger.info("The total time is: {}".format(
-            str(datetime.timedelta(seconds=time_duration))))
 
+    logger.info("The total time for seed {} is: {}".format(prm.seed,
+            str(datetime.timedelta(seconds=time_duration))))
     logger.handlers.clear()
 
+    if isinstance(model, tuple):
+        return (acc, b_acc, dp, eo, sg, bacc_list)
+    else:
+        return (acc, b_acc, dp, eo, sg)
 
 
 if __name__ == "__main__":
@@ -192,190 +147,75 @@ if __name__ == "__main__":
     os.environ["WANDB_MODE"] = "offline"
     parser = argparse.ArgumentParser()
     # ----------------------------------------------------------------------------------------------------
-    # Direct args
-    # ----------------------------------------------------------------------------------------------------
     # BASIC param
     # ----------------------------------------------------------------------------------------------------
-    parser.add_argument("--config", type=str, help="config file", default='EXPS/bank_template.yml')
-
+    parser.add_argument("--config", type=str, help="config file", default='EXPS/tadpole_template.yml')
     # parser.add_argument("--method", type=str, help="method name", default="ours")
-    # DATASET
+    # ----------------------------------------------------------------------------------------------------
+    # Dataset
+    # ----------------------------------------------------------------------------------------------------
     parser.add_argument("--dataset", type=str, help="dataset name", default="tadpole")
-    parser.add_argument(
-        "--sens_attrs",
-        type=str,
-        help="sub dataset name for toxic dataset",
-        default="race",
-    )
+    parser.add_argument("--sens_attrs", type=str, help="sub dataset name for toxic dataset", default="race")
     parser.add_argument("--N_subtask", type=int, help="subgroups number", default=7)
     # toxic kaggle
-    parser.add_argument(
-        "--acc_bar", type=float, help="evaluation bar for toxic dataset", default=0.4
-    )
+    parser.add_argument("--acc_bar", type=float, help="evaluation bar for toxic dataset", default=0.4)
     # amazon
-    parser.add_argument(
-        "--lower_rate",
-        type=int,
-        help="lower review rate for amazon dataset,0-4",
-        default=3,
-    )
-    parser.add_argument(
-        "--upper_rate",
-        type=int,
-        help="lower review rate for amazon dataset,0-4",
-        default=4,
-    )
-
+    parser.add_argument("--lower_rate", type=int, help="lower review rate for amazon dataset,0-4", default=3)
+    parser.add_argument("--upper_rate", type=int, help="lower review rate for amazon dataset,0-4", default=4)
+    # training
     parser.add_argument("--model_name", type=str, help="model name", default="FcNet4")
-
-    parser.add_argument(
-        "--training_epoch", type=int, help="total training epoch", default=100
-    )
-    parser.add_argument(
-        "--batch_size", type=int, help="input size for training", default=50
-    )
-
+    parser.add_argument("--training_epoch", type=int, help="total training epoch", default=100)
+    parser.add_argument("--batch_size", type=int, help="input size for training", default=50)
     # ----------------------------------------------------------------------------------------------------
     # META param
     # ----------------------------------------------------------------------------------------------------
-    parser.add_argument(
-        "--max_inner", type=int, help="number of inner loop", default=15
-    )
+    parser.add_argument("--max_inner", type=int, help="number of inner loop", default=15)
     parser.add_argument("--max_outer", type=int, help="number of outer loop", default=5)
-    parser.add_argument(
-        "--lr_prior",
-        type=float,
-        help="learning rate for prior model (0.5-1)",
-        default=0.01,  # 0.01
-    )
-    parser.add_argument(
-        "--lr_post", type=float, help="learning rate for post model", default=0.01  # 0.4
-    )
-    # parser.add_argument(
-    #     "--weight",
-    #     type=float,
-    #     help="weights for controlling ERM and KL divergence (at least 0.1)",
-    #     default=0.4,
-    # )
-
-    parser.add_argument(
-        "--divergence_type",
-        type=str,
-        help="choose the divergence type 'KL' or 'W_Sqr'",
-        default="W_Sqr",
-    )
-    parser.add_argument(
-        "--kappa_prior",
-        type=float,
-        help="The STD of the 'noise' added to prior while using KL",
-        default=0.01,
-    )
-    parser.add_argument(
-        "--kappa_post",
-        type=float,
-        help="The STD of the 'noise' added to post while using KL",
-        default=1e-3,
-    )
+    parser.add_argument("--lr_prior", type=float, help="learning rate for prior model (0.5-1)", default=0.1)
+    parser.add_argument("--lr_post", type=float, help="learning rate for post model", default=0.1)
+    parser.add_argument("--lr", type=float, help="learning rate for single level ERM model", default=0.01)
+    parser.add_argument("--divergence_type", type=str, help="choose the divergence type 'KL' or 'W_Sqr'", default="W_Sqr")
+    parser.add_argument("--kappa_prior", type=float, help="The STD of the 'noise' added to prior while using KL", default=0.01)
+    parser.add_argument("--kappa_post", type=float, help="The STD of the 'noise' added to post while using KL", default=1e-3)
     # ----------------------------------------------------------------------------------------------------
     # Stochastic
     # ----------------------------------------------------------------------------------------------------
-    parser.add_argument(
-        "--log_var_init_mean",
-        type=float,
-        help="Weights initialization (for Bayesian net) - mean",
-        default=-0.1,
-    )
-    parser.add_argument(
-        "--log_var_init_var",
-        type=float,
-        help="Weights initialization (for Bayesian net) - var",
-        default=0.1,
-    )
-    parser.add_argument(
-        "--eps_std",
-        type=float,
-        help="Bayesian Network Noisy Ratio",
-        default=0.1,
-    )
-    parser.add_argument(
-        "--n_MC", type=int, help="Number of Monte-Carlo iterations", default=5
-    )
+    parser.add_argument("--log_var_init_mean", type=float, help="Weights initialization (for Bayesian net) - mean", default=-0.1)
+    parser.add_argument("--log_var_init_var", type=float, help="Weights initialization (for Bayesian net) - var", default=0.1)
+    parser.add_argument("--eps_std", type=float, help="Bayesian Network Noisy Ratio", default=0.1)
+    parser.add_argument("--n_MC", type=int, help="Number of Monte-Carlo iterations", default=5)
     # ----------------------------------------------------------------------------------------------------
     # Post Processing
     # ----------------------------------------------------------------------------------------------------
-    parser.add_argument(
-        "--acc_bin",
-        type=float,
-        help="accuracy bar while evaluating predict result",
-        default=0.5,
-    )
-    parser.add_argument(
-        "--params",
-        type=dict,
-        help="param dict for suf calibration gap calaculation",
-        default=None,
-    )
+    parser.add_argument("--acc_bin", type=float, help="accuracy bar while evaluating predict result", default=0.5)
+    parser.add_argument("--params", type=dict, help="param dict for suf calibration gap calculation", default=None)
     # ----------------------------------------------------------------------------------------------------
     # Other
     # ----------------------------------------------------------------------------------------------------
     parser.add_argument("--seed", type=int, help="seed", default=0)
-    parser.add_argument(
-        "--use_wandb", type=bool, help="whether use_wandb", default=False
-    )
-    parser.add_argument(
-        "--wandb_username", type=str, help="wandb user name", default='UNKNOWN'
-    )
-    parser.add_argument(
-        "--exp_name",
-        type=str,
-        help="outpur dir prefix for log info and result",
-        default="test",
-    )
-    parser.add_argument(
-        "--train_inf_step", type=int, help="Inference Period while training", default=1
-    )
-
-    parser.add_argument(
-        "--is_bilevel", type=bool,
-        help="whether use bilevel to tackle the imbalance issue",
-        default=False
-    )
-
-    parser.add_argument(
-        "--manual_adjust", type=bool,
-        help="whether manually adjust label",
-        default=False
-    )
-
-    parser.add_argument(
-        "--sharp_strategy", type=bool,
-        help="whether use sharp strategy to flatten the objective landscape",
-        default=True
-    )
-
-    parser.add_argument(
-        "--rho", type=float,
-        help="hyper parameter for sharp strategy",
-        default=0.3
-    )
-
+    parser.add_argument("--use_wandb", type=bool, help="whether use_wandb", default=False)
+    parser.add_argument("--wandb_username", type=str, help="wandb user name", default='UNKNOWN')
+    parser.add_argument("--exp_name", type=str, help="outpur dir prefix for log info and result", default="test")
+    parser.add_argument("--train_inf_step", type=int, help="Inference Period while training", default=1)
+    parser.add_argument("--is_bilevel", type=bool, help="whether use bilevel", default=False)
+    parser.add_argument("--manual_adjust", type=bool, help="whether manually adjust label", default=False)
+    parser.add_argument("--sharp_strategy", type=bool, help="whether use sharp strategy", default=False)
+    parser.add_argument("--rho", type=float,help="hyper parameter for sharp strategy",default=0.3)
     parser.add_argument(
         "--method", type=int,
         help="1: FAMS, 2: FAMS+manual logits adjustment"
-             "3: Ours, 4: Ours-KL in up level"
-             "5: Ours-indirect grad for global f"
-             "6: Ours-KL in up level-indirect grad for global f"
+             "3: Ours, 4: Ours without KL in up level"
+             "5: Ours without indirect grad for global f"
+             "6: Ours without KL in up level-indirect grad for global f"
              "7: trivial ERM, 8: Ours with sharp strategy"
-             "9: balanced ERM",
-        default=9
+             "9: balanced ERM, 10: FAMS with sharp strategy",
+        default=1
     )
 
     args = parser.parse_args()
-
     # ----------------------------------------------------------------------------------------------------
     # config file update
     # ----------------------------------------------------------------------------------------------------
-
     if args.config:
         cfg_dir = osp.abspath(osp.join(osp.dirname(__file__), args.config))
         opt = vars(args)
@@ -383,4 +223,70 @@ if __name__ == "__main__":
         opt.update(args)
         args = argparse.Namespace(**opt)
 
-    main(args)
+    time_start = time.time()
+    logger = logging.getLogger("fair")
+
+    acc_list, b_acc_list, dp_list, eo_list, sg_list = [], [], [], [], []
+    b_acc_post_list = []
+    seed_list = [0, 42, 666, 777, 1009]
+    for seed in seed_list:
+        logger.info('==============================seed {}=================================='.format(seed))
+        args.seed = seed
+        result = main(args)
+        if len(result) == 5:
+            acc, b_acc, dp, eo, sg = result
+        else:
+            acc, b_acc, dp, eo, sg, b_acc_post = result
+            b_acc_post_list.append(b_acc_post)
+        acc_list.append(acc)
+        b_acc_list.append(b_acc)
+        dp_list.append(dp)
+        eo_list.append(eo)
+        sg_list.append(sg)
+
+    logger.info('===========================All Results===========================')
+    logger.info('ACC  Mean±Std {:.4f}±{:.4f}'.format(np.mean(acc_list), np.std(acc_list)))
+    logger.info('BACC Mean±Std {:.4f}±{:.4f}'.format(np.mean(b_acc_list), np.std(b_acc_list)))
+    logger.info('DP   Mean±Std {:.4f}±{:.4f}'.format(np.mean(dp_list), np.std(dp_list)))
+    logger.info('EO   Mean±Std {:.4f}±{:.4f}'.format(np.mean(eo_list), np.std(eo_list)))
+    logger.info('SG   Mean±Std {:.4f}±{:.4f}'.format(np.mean(sg_list), np.std(sg_list)))
+    if len(b_acc_post_list) > 0:
+        b_acc_post_list = np.array(b_acc_post_list)
+        mean_list = np.mean(b_acc_post_list, axis=0)
+        std_list = np.std(b_acc_post_list, axis=0)
+        for idx, mean in enumerate(mean_list):
+            logger.info('BACC of post model {} Mean±Std {:.4f}±{:.4f}'
+                        .format(idx, mean, std_list[idx]))
+
+    # save result
+    npy_dir, npy_file_pre = set_npy_new(args)
+    if not os.path.exists(npy_dir):
+        os.makedirs(npy_dir)
+
+    result = {}
+    result['acc_list'] = acc_list
+    result['b_acc_list'] = b_acc_list
+    result['dp_list'] = [float(item) for item in dp_list]
+    result['eo_list'] = eo_list
+    result['sg_list'] = sg_list
+    result['b_acc_post_list'] = [list(item) for item in list(b_acc_post_list)]
+    with open(osp.join(npy_dir, npy_file_pre + ".json"), 'w') as file:
+        json.dump(result, file)
+
+    # np.save(osp.join(npy_dir, npy_file_pre + "_acc.npy"), acc_list)
+    # np.save(osp.join(npy_dir, npy_file_pre + "_bacc_prior.npy"), b_acc_list)
+    # np.save(osp.join(npy_dir, npy_file_pre + "_dp.npy"), dp_list)
+    # np.save(osp.join(npy_dir, npy_file_pre + "_eo.npy"), eo_list)
+    # np.save(osp.join(npy_dir, npy_file_pre + "_sg.npy"), sg_list)
+    # if len(b_acc_post_list) > 0:
+    #     np.save(osp.join(npy_dir, npy_file_pre + "_bacc_post.npy"), b_acc_post_list)
+
+    time_end = time.time()
+    time_duration = time_end - time_start
+
+    logger.info("The total time of {} repeats is: {}".format(len(seed_list),
+        str(datetime.timedelta(seconds=time_duration))))
+    logger.info("data={}, method={}, lr_prior={}, lr_post={}, lr={}, model={}, lambda_up={}, "
+                "lambda_low={}, rho={}".format(args.dataset, args.method, args.lr_prior,
+                args.lr_post, args.lr, args.model_name, args.lambda_up, args.lambda_low, args.rho))
+

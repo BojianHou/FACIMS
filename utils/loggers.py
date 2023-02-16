@@ -81,3 +81,18 @@ def set_npy(prm, cur_epoch):
     npy_file_pre = f"{prm.method}_{prm.dataset}_seed_{prm.seed}_task_{prm.N_subtask}_epoch_{cur_epoch}_batch_{prm.batch_size}_{prm.exp_name}"
 
     return npy_dir, npy_file_pre
+
+
+def set_npy_new(prm):
+    npy_dir = osp.abspath(
+        osp.join(
+            osp.dirname(__file__),
+            "../npy",
+            prm.dataset
+        )
+    )
+    if prm.method in [7, 9]:  # method 7 and 9 only have one learning rate
+        npy_file_pre = f"Method_{prm.method}_{prm.model_name}_lr_{prm.lr}"
+    else:
+        npy_file_pre = f"Method_{prm.method}_{prm.model_name}_lr_prior_{prm.lr_prior}_lr_post_{prm.lr_post}"
+    return npy_dir, npy_file_pre

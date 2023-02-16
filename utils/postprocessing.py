@@ -247,10 +247,7 @@ def result_show(y_test, predict, A_test, prm):
     logger.info("[EO] The overall equalized odds is:         {:.4f}".format(EO_score))
     logger.info("[SufGAP] The overall sufficiency gap is:    {:.4f}".format(suf_gap_avg_score))
 
-    return (
-        accuracy,
-        suf_gap_avg_score,
-    )
+    return accuracy, b_acc, DP_score, EO_score, suf_gap_avg_score
 
 
 def result_wandb(y_test, predict, A_test, prm):

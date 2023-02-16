@@ -46,6 +46,8 @@ def get_model(prm, model_type='Stochastic'):
         model = FcNet3(model_type, model_name, linear_layer, prm)
     elif model_name == 'FcNet4':
         model = FcNet4(model_type, model_name, linear_layer, prm)
+    elif model_name == 'FcNet6':
+        model = FcNet6(model_type, model_name, linear_layer, prm)
     # elif model_name == 'ConvNet3':
     #     model = ConvNet3()
     else:
@@ -149,6 +151,51 @@ class FcNet4(general_model):
         x = self.fc2(x)
         x = F.elu(x)
         x = self.fc3(x)
+        x = F.elu(x)
+        x = self.fc_out(x)
+        x = torch.sigmoid(x.squeeze(dim=-1))
+        return x
+
+
+# -------------------------------------------------------------------------------------------
+#  5-hidden-layer Fully-Connected Net
+# -------------------------------------------------------------------------------------------
+class FcNet6(general_model):
+    def __init__(self, model_type, model_name, linear_layer, prm):
+        super(FcNet6, self).__init__()
+        self.model_type = model_type
+        self.model_name = model_name
+        self.layers_names = ('FC1', 'FC2', 'FC3', 'FC4', 'FC5', 'FC_out')
+        input_size = prm.input_shape
+        output_dim = prm.output_dim
+
+
+        self.input_size = input_size
+        n_hidden1 = 400
+        n_hidden2 = 200
+        n_hidden3 = 100
+        n_hidden4 = 100
+        n_hidden5 = 50
+        self.fc1 = linear_layer(input_size, n_hidden1)
+        self.fc2 = linear_layer(n_hidden1, n_hidden2)
+        self.fc3 = linear_layer(n_hidden2, n_hidden3)
+        self.fc4 = linear_layer(n_hidden3, n_hidden4)
+        self.fc5 = linear_layer(n_hidden4, n_hidden5)
+        self.fc_out = linear_layer(n_hidden5, output_dim)
+        # self._init_weights(log_var_init)  # Initialize weights
+
+    def forward(self, x):
+        if len(x.shape) == 4:
+            x = x.view(-1, x.shape[1]*x.shape[-2]*x.shape[-1])
+        x = self.fc1(x)
+        x = F.elu(x)
+        x = self.fc2(x)
+        x = F.elu(x)
+        x = self.fc3(x)
+        x = F.elu(x)
+        x = self.fc4(x)
+        x = F.elu(x)
+        x = self.fc5(x)
         x = F.elu(x)
         x = self.fc_out(x)
         x = torch.sigmoid(x.squeeze(dim=-1))

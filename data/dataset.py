@@ -124,7 +124,7 @@ def load_data(prm):
     logger.info("DATA LOADING...")
     logger.info("DATASET: {}".format(prm.dataset))
     if prm.dataset == "toxic":
-        return load_toxic_distilbert(prm.sens_attrs, prm.acc_bar)
+        return load_toxic_distilbert(prm.sens_attrs, prm.acc_bar, prm.seed)
     elif prm.dataset == "amazon":
         return load_amazon_distilbert(
             prm.N_subtask, prm.lower_rate, prm.upper_rate
@@ -134,16 +134,38 @@ def load_data(prm):
     elif prm.dataset == "celeba":
         return load_celeba_features()
     elif prm.dataset == 'tadpole':
-        return load_tadpole()
+        return load_tadpole(prm.seed)
     elif prm.dataset == 'isic_m':
         return load_isic_m()
     elif prm.dataset == 'isic_s':
         return load_isic_s()
     elif prm.dataset == 'bank':
         return load_bank()
+    elif prm.dataset == 'credit':
+        return load_credit(prm.seed)
     else:
         raise ValueError("Invalid dataset:{}".format(prm.dataset))
 
+
+# ----------------------------------------------------------------------------------------------
+# Credit Dataset
+# ----------------------------------------------------------------------------------------------
+def load_credit(seed):
+    logger.info("Credit dataset Preprocessing ...")
+    data = pd.read_csv('./DATASOURCE/credit.csv')
+    group = data['EDUCATION']
+    logger.info(f"Grouped Info:\n  {group.value_counts()}")
+    group = group.to_numpy()
+    X = data.drop(columns=['ID', 'EDUCATION', 'default payment next month']).to_numpy()
+    X = StandardScaler().fit_transform(X)
+    y = data['default payment next month'].to_numpy()
+
+    X_rem, X_test, y_rem, y_test, group_rem, group_test = \
+        train_test_split(X, y, group, test_size=0.3, random_state=42, stratify=y)
+    X_train, X_val, y_train, y_val, group_train, group_val = \
+        train_test_split(X_rem, y_rem, group_rem, test_size=0.3, random_state=42, stratify=y_rem)
+
+    return X_train, X_val, X_test, group_train, group_val, group_test, y_train, y_val, y_test
 
 # ----------------------------------------------------------------------------------------------
 # Bank Dataset
@@ -215,7 +237,7 @@ def load_isic_s():
 # ----------------------------------------------------------------------------------------------
 # Tadpole Dataset
 # ----------------------------------------------------------------------------------------------
-def load_tadpole():
+def load_tadpole(seed):
     # DXCHANGE: 1=Stable: NL to NL; 2=Stable: MCI to MCI; 3=Stable: Dementia to Dementia;
     # 4=Conversion: NL to MCI; 5=Conversion: MCI to Dementia; 6=Conversion: NL to Dementia;
     # 7=Reversion: MCI to NL; 8=Reversion: Dementia to MCI; 9=Reversion: Dementia to NL。
@@ -453,7 +475,7 @@ def preprocess_adult_data(seed=0):
 # ----------------------------------------------------------------------------------------------
 
 
-def generate_multi_attrs_toxic(h5_file, csv_file, extracted_attrs, bar):
+def generate_multi_attrs_toxic(h5_file, csv_file, extracted_attrs, bar, seed=0):
 
     all_df = pd.read_csv(csv_file)
     all_h5 = h5py.File(h5_file)
@@ -511,7 +533,7 @@ def generate_multi_attrs_toxic(h5_file, csv_file, extracted_attrs, bar):
     return X_train, X_val, X_test, A_train, A_val, A_test, Y_train, Y_val, Y_test
 
 
-def load_toxic_distilbert(sens_attrs, bar):
+def load_toxic_distilbert(sens_attrs, bar, seed=0):
 
     h5_file = osp.abspath(
         osp.join(

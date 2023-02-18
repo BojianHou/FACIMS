@@ -21,7 +21,6 @@ pip install -r requirements.txt
   - Alzheimer’s Disease (Tadpole)
   - Credit Card (Credit)
 
----
 
 ## Getting Started - Train
 

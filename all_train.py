@@ -149,7 +149,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------
     # BASIC param
     # ----------------------------------------------------------------------------------------------------
-    parser.add_argument("--config", type=str, help="config file", default='EXPS/tadpole_template.yml')
+    parser.add_argument("--config", type=str, help="config file", default='EXPS/credit_template.yml')
     # parser.add_argument("--method", type=str, help="method name", default="ours")
     # ----------------------------------------------------------------------------------------------------
     # Dataset
@@ -171,12 +171,14 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------
     parser.add_argument("--max_inner", type=int, help="number of inner loop", default=15)
     parser.add_argument("--max_outer", type=int, help="number of outer loop", default=5)
-    parser.add_argument("--lr_prior", type=float, help="learning rate for prior model (0.5-1)", default=0.1)
-    parser.add_argument("--lr_post", type=float, help="learning rate for post model", default=0.1)
+    parser.add_argument("--lr_prior", type=float, help="learning rate for prior model (0.5-1)", default=0.01)
+    parser.add_argument("--lr_post", type=float, help="learning rate for post model", default=0.4)
     parser.add_argument("--lr", type=float, help="learning rate for single level ERM model", default=0.01)
     parser.add_argument("--divergence_type", type=str, help="choose the divergence type 'KL' or 'W_Sqr'", default="W_Sqr")
     parser.add_argument("--kappa_prior", type=float, help="The STD of the 'noise' added to prior while using KL", default=0.01)
     parser.add_argument("--kappa_post", type=float, help="The STD of the 'noise' added to post while using KL", default=1e-3)
+    parser.add_argument("--lambda_low", type=float, help="trade-off parameter in lower level", default=0.1)
+    parser.add_argument("--lambda_up", type=float, help="trade-off parameter in upper level", default=0.7)
     # ----------------------------------------------------------------------------------------------------
     # Stochastic
     # ----------------------------------------------------------------------------------------------------
@@ -192,6 +194,7 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------
     # Other
     # ----------------------------------------------------------------------------------------------------
+    parser.add_argument('--cuda_device', default=2, type=int, help='specifies the index of the cuda device')
     parser.add_argument("--seed", type=int, help="seed", default=0)
     parser.add_argument("--use_wandb", type=bool, help="whether use_wandb", default=False)
     parser.add_argument("--wandb_username", type=str, help="wandb user name", default='UNKNOWN')
@@ -200,7 +203,7 @@ if __name__ == "__main__":
     parser.add_argument("--is_bilevel", type=bool, help="whether use bilevel", default=False)
     parser.add_argument("--manual_adjust", type=bool, help="whether manually adjust label", default=False)
     parser.add_argument("--sharp_strategy", type=bool, help="whether use sharp strategy", default=False)
-    parser.add_argument("--rho", type=float,help="hyper parameter for sharp strategy",default=0.3)
+    parser.add_argument("--rho", type=float,help="hyper parameter for sharp strategy",default=0.05)
     parser.add_argument(
         "--method", type=int,
         help="1: FAMS, 2: FAMS+manual logits adjustment"
@@ -209,10 +212,11 @@ if __name__ == "__main__":
              "6: Ours without KL in up level-indirect grad for global f"
              "7: trivial ERM, 8: Ours with sharp strategy"
              "9: balanced ERM, 10: FAMS with sharp strategy",
-        default=1
+        default=8
     )
 
     args = parser.parse_args()
+    torch.cuda.set_device(args.cuda_device)  # set cuda device
     # ----------------------------------------------------------------------------------------------------
     # config file update
     # ----------------------------------------------------------------------------------------------------
@@ -228,7 +232,7 @@ if __name__ == "__main__":
 
     acc_list, b_acc_list, dp_list, eo_list, sg_list = [], [], [], [], []
     b_acc_post_list = []
-    seed_list = [0, 42, 666, 777, 1009]
+    seed_list = [0, 42, 666, 777, 1009]   # 42, 666, 777, 1009
     for seed in seed_list:
         logger.info('==============================seed {}=================================='.format(seed))
         args.seed = seed

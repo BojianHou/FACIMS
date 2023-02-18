@@ -86,7 +86,8 @@ def train_one_task(
         # Compute the complexity term (noised prior can be set false)
         complexity = get_KLD(prior_model, post_model, prm, noised_prior=True)
 
-        loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
+        # loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
+        loss = avg_empiric_loss + prm.lambda_low * complexity
 
         optimizer_post.zero_grad()
         loss.backward()  # calculate the gradient for the original parameters w
@@ -104,7 +105,8 @@ def train_one_task(
             # Compute the complexity term (noised prior can be set false)
             complexity = get_KLD(prior_model, post_model, prm, noised_prior=True)
 
-            loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
+            # loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
+            loss = avg_empiric_loss + prm.lambda_low * complexity
             optimizer_post.zero_grad()
             loss.backward()
             optimizer_post.second_step(zero_grad=True)
@@ -189,7 +191,8 @@ def train_one_task_without_GD(
         # Compute the complexity term (noised prior can be set false)
         complexity = get_KLD(prior_model, post_model, prm, noised_prior=True)
 
-        loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
+        # loss = prm.lambda_low * avg_empiric_loss + (1 - prm.lambda_low) * complexity
+        loss = avg_empiric_loss + prm.lambda_low * complexity
         # added by Bojian
         optimizer_post.zero_grad()
         d_L_low_d_post += gather_flat_grad(grad(loss, post_model.parameters(), create_graph=True))
@@ -510,12 +513,12 @@ def train_ours(prm,
     # num_classes = len(np.unique(y_train))
     dy = get_init_dy(prm.device, num_classes=prm.output_dim)  # multiplicative adjustments to the logit
     ly = get_init_ly(prm.device, num_classes=prm.output_dim)  # additive adjustments to the logit
-    w_train = get_train_w(prm.device, num_classes=prm.num_classes)  # weight for cross entropy for different class
+    # w_train = get_train_w(prm.device, num_classes=prm.num_classes)  # weight for cross entropy for different class
     class_num_val = []
     for i in range(prm.num_classes):
         class_num_val.append(np.sum(y_test == i))
     w_val = get_val_w(prm.device, class_num_val)  # weight for cross entropy for different class
-
+    w_train = w_val.clone()
     if prm.manual_adjust:
         low_params = w_val
     else:
@@ -537,9 +540,10 @@ def train_ours(prm,
     post_models = [get_model(prm) for _ in range(model_num)]
 
     if prm.sharp_strategy:
+        rho_list = [0.00005 * (10**item) for item in range(prm.N_subtask)]  # small rho for majority group
         list_optimizer_post = [
-            SAM(base_optimizer=optim.Adagrad, rho=prm.rho, params=post_model.parameters(), lr=prm.lr_post)
-            for post_model in post_models
+            SAM(base_optimizer=optim.Adagrad, rho=rho, params=post_model.parameters(), lr=prm.lr_post)
+            for rho, post_model in zip(rho_list, post_models)
         ]
     else:
         list_optimizer_post = [
@@ -583,6 +587,7 @@ def train_ours(prm,
             optimizer_hyper_schedular,
             low_params, up_params
         )
+        torch.cuda.empty_cache()
 
         time_e = time.time()
 

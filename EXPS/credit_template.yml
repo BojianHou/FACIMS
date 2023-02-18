@@ -1,7 +1,7 @@
 # COMMON args
 # method: ours
 # model_name: FcNet4
-training_epoch: 80 # 80
+training_epoch: 50 # 80
 batch_size: 50
 # lr_prior: 0.01 # 0.001
 

@@ -1,34 +1,33 @@
 # COMMON args
 # method: ours
-# model_name: FcNet4
-training_epoch: 50 # 80
+model_name: FcNet4
+training_epoch: 80
 batch_size: 50
-# lr_prior: 0.01 # 0.001
+lr_prior: 0.01
 
 #------------------------------------------------------------------------------------
 #DATASET related
 dataset: tadpole
 sens_attrs: race
 N_subtask: 4
-acc_bar: 0.4 # toxic
-lower_rate: 3 # amazon
-upper_rate: 4 # amazon
-
+acc_bar: 0.4
+lower_rate: 3
+upper_rate: 4
 
 #------------------------------------------------------------------------------------
 # METHOD Specific
 # ours 
-# lr_post: 0.1  # 0.4
-# lambda_low: 0.7 # trade-off parameter between loss and KL for post model
+lr_post: 0.01
+lambda_low: 0.7 # trade-off parameter between loss and KL for post model
 lambda_up: 0.7  # 0.4 trade-off parameter between loss and KL for prior model
-max_inner: 10  # 10
-max_outer: 5  # 5
-divergence_type: W_Sqr  # W_Sqr KL
+max_inner: 10
+max_outer: 5
+divergence_type: W_Sqr
 kappa_prior: 0.01
 kappa_post: 0.001
 
-log_var_init_mean: 0.01 #-0.1
-log_var_init_var: 0.01 #0.1
+log_var_init_mean: 0.01
+log_var_init_var: 0.01
 eps_std: 0.08
 n_MC: 5
 

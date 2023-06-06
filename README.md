@@ -1,28 +1,40 @@
-# *Fairness-Aware Class Imbalanced Learning on Multiple Subgroups*
+# Fairness-Aware Class Imbalanced Learning on Multiple Subgroups
 
-Official Implementation of our paper 
-***Fairness-Aware Class Imbalanced 
-Learning on Multiple Subgroups*** (Submitted to UAI 2023)  
+This repository holds the official code for the paper [Fairness-Aware Class Imbalanced 
+Learning on Multiple Subgroups]() (Accepted by [UAI 2023](https://www.auai.org/uai2023/))  
+
+### 🦸‍ Abstract
+We propose a novel Bayesian-based optimization framework designed to tackle the challenge 
+of generalization in overparameterized models with imbalanced subgroups and limited samples. 
+Our proposed tri-level optimization framework leverages both local (subgroup-specific) predictors, 
+trained on a small amount of data, and a fair and class-balanced predictor at the middle 
+and lower levels. To effectively overcome saddle points for minority classes, our lower-level 
+formulation incorporates sharpness-aware minimization. At the upper level, the framework 
+dynamically adjusts the loss function based on validation loss, ensuring close alignment 
+between the global predictor and local predictors. Theoretical analysis demonstrates the 
+framework's ability to enhance classification and fairness generalization, potentially 
+leading to improvements in the generalization bound. Empirical results validate the superior 
+performance of our tri-level framework compared to existing state-of-the-art approaches.
+### 🗄️ Data
+**
+**- Datasets
+  - Alzheimer’s Disease (Tadpole)
+  - Credit Card (Credit)
+  - Drug
+   
+
+### 💡 Method
 
 
-## Requirements
 
-### ENVS
-
+### 📝 Requirements
 The algorithm is implemented mainly based on PyTorch Deep Learning Framework. 
 To install the related packages, use
 ```bash
 pip install -r requirements.txt
 ```
 
-### Data
-
-- Datasets
-  - Alzheimer’s Disease (Tadpole)
-  - Credit Card (Credit)
-
-
-## Getting Started - Train
+### 🔨 Usage
 
 1. Use our provided data files and Make Sure that there are well-prepared representative data in the `./DATASOURCE/#your_dataset` folder.
 
@@ -47,5 +59,36 @@ pip install -r requirements.txt
 
    1. Log file will be output to `./logs` folder
    2. Numerical test result will be saved to `./npy` folder  
+
+
+### 🤝 Acknowledgements
+
+
+### 📭 Maintainers
+
+[Bojian Hou](http://bojianhou.com) 
+- ([bojian.hou@pennmedicine.upenn.edu](mailto:bojian.hou@pennmedicine.upenn.edu))
+- ([hobo.hbj@gmail.com](mailto:hobo.hbj@gmail.com))
+
+### 📚 Citation
+
+```
+@inproceedings{DB2023,
+  title={Fairness-Aware Class Imbalanced Learning on Multiple Subgroups},
+  author={Davoud Ataee Tarzanagh, Bojian Hou, Boning Tong, Qi Long, Li Shen},
+  booktitle={The Conference on Uncertainty in Artificial Intelligence (UAI)},
+  year={2023},
+}
+```
+
+
+
+
+
+
+
+
+
+
 
    

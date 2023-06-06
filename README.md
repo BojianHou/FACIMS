@@ -24,7 +24,7 @@ performance of our tri-level framework compared to existing state-of-the-art app
    
 
 ### 💡 Method
-
+![img.png](img.png)
 
 
 ### 📝 Requirements

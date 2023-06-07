@@ -16,15 +16,14 @@ framework's ability to enhance classification and fairness generalization, poten
 leading to improvements in the generalization bound. Empirical results validate the superior 
 performance of our tri-level framework compared to existing state-of-the-art approaches.
 ### 🗄️ Data
-**
-**- Datasets
+We use three real-world datasets listed as follows. 
   - Alzheimer’s Disease (Tadpole)
   - Credit Card (Credit)
   - Drug
    
 
 ### 💡 Method
-![img.png](img.png)
+![FACIMS Illustration](FACIMS-illustration.png)
 
 
 ### 📝 Requirements

@@ -8,7 +8,8 @@ We propose a novel Bayesian-based optimization framework designed to tackle the 
 
 ### 💡 Method
 ![FACIMS Illustration](FACIMS-illustration.png)
-
+Our objective is as follows:
+![FACIMS formulation](FACIMS.jpg)
 
 ### 🗄️ Data
 In our paper, we use three real-world datasets listed as follows. We only provide the data 

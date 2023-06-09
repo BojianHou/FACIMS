@@ -5,8 +5,9 @@ import logging
 from scipy import interpolate
 from scipy.special import softmax
 from data.hypers import CALI_PARAMS
-from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import balanced_accuracy_score, recall_score, confusion_matrix
 from sklearn.preprocessing import normalize
+import copy
 
 logger = logging.getLogger("fair")
 
@@ -14,36 +15,24 @@ logger = logging.getLogger("fair")
 # Post Processing and Calculation
 # ----------------------------------------------------------------------------------------------
 # acc
-def compute_accuracy(y, hat_y, bar=0.5, output_dim=2, if_logger=False):
-    """
-    Computing the accuracy score of the predictor
-    :param y:
-    :param hat_y:
-    :return:
-    """
-    if if_logger:
-        logger.info(
-            "groud truth y mean is: {}, predict y mean is: {}".format(
-                y.mean(), hat_y.mean()
-            )
-        )
-        logger.info("predict y is: {}".format(hat_y))
-
-    y = np.where(y > bar, 1, 0)
-    # added by Bojian
+def compute_accuracy(y, y_hat, bar=0.5, output_dim=2):
     if output_dim == 1:
-        hat_y = np.where(hat_y > bar, 1, 0)
+        y_hat = np.where(y_hat > bar, 1, 0)
     else:
-        hat_y = hat_y.argmax(1)
+        y_hat = y_hat.argmax(1)
 
-    if if_logger:
-        logger.info(
-            "The acc_bar is: {}, dataset size is: {}, groud truth y = 1 num is: {}, predict y = 1 num is: {}".format(
-                bar, len(y), y.sum(), hat_y.sum()
-            )
-        )
+    acc = accuracy_score(y, y_hat)
+    bacc = balanced_accuracy_score(y, y_hat)
+    # if output_dim <= 2:
+    #     recall = recall_score(y, y_hat, average='binary')
 
-    return accuracy_score(y, hat_y), balanced_accuracy_score(y, hat_y)
+    # we calculate the recall for each class separately
+    recall = []
+    for y_i in np.unique(y):
+        idx_current_class = np.where(y == y_i)[0]
+        current_recall = len(np.where(y_hat[idx_current_class] == y_i)[0]) / len(idx_current_class)
+        recall.append(current_recall)
+    return acc, bacc, recall
 
 
 # suf gap
@@ -77,7 +66,7 @@ def new_calibration_curve(y, y_hat, params, normalize=False):
     return prob_true, prob_pred
 
 
-# def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
+# def standard_suf_gap_all(y, y_hat, A, prm, if_logger=False):
 #     num_A = len(np.unique(A))
 #     params = prm.params
 #     n_bins = params["n_bins"]
@@ -122,23 +111,17 @@ def new_calibration_curve(y, y_hat, params, normalize=False):
 #         # logger.info("[SufGAP] The average sufficiency gap : {}".format(exp_x_a))
 #         return exp_x_a
 
-def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
+def standard_suf_gap_all_binary(y, y_hat, A):
     num_A = len(np.unique(A))
-    params = prm.params
-    n_bins = params["n_bins"]
-    interpolate_kind = params["interpolate_kind"]
+    n_bins = 5
+    interpolate_kind = 'linear'
 
     # groups_pred_true = np.zeros((num_A, n_bins))
     # groups_pred_prob = np.zeros((num_A, n_bins))
 
-    # y_hat = softmax(y_hat, axis=1)  # added by Bojian
-
-    # if the output logits are all 0, replace them with 0.5 to prevent the divider contains 0
-    y_hat[np.where(y_hat.sum(1) == 0)[0]] = [0.5] * prm.output_dim
-    y_hat = y_hat / np.concatenate([[y_hat.sum(1)], [y_hat.sum(1)]]).T  # normalize
-    # y_hat = y_hat.max(1)  # added by Bojian
-    y_hat = y_hat[:,-1]
-    all_prob_true, all_prob_pred = calibration_curve(y, y_hat, n_bins=n_bins)
+    y_hat = softmax(y_hat, axis=1)  # added by Bojian
+    y_hat = y_hat[:,1]
+    all_prob_true, all_prob_pred = calibration_curve(y, y_hat, n_bins=n_bins, pos_label=1)
 
     if all_prob_true.shape[0] != n_bins:
         logger.info('The range of prediction is not large enough for sufficiency gap computation, shrink the bins!')
@@ -153,7 +136,7 @@ def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
         try:
             t, p = calibration_curve(
                 y[A == np.unique(A)[i]], y_hat[A == np.unique(A)[i]], n_bins=n_bins)
-            if params["interpolate_kind"]:
+            if interpolate_kind:
                 # new_x = np.linspace(0.01, 0.99, n_bins)
                 new_x = all_prob_pred
                 f = interpolate.interp1d(
@@ -171,93 +154,195 @@ def standard_suf_gap_all(y_hat, y, A, prm, if_logger=False):
             continue
 
     exp_x_given_a = np.abs(all_prob_true - groups_pred_true).mean(axis=1)
-    if 'toxic' in prm.dataset.lower():
-        exp_x_a = exp_x_given_a[1:].mean()
-        if if_logger:
-            logger.info("[SufGAP] The average sufficiency gap : {:.4f}".format(exp_x_a))
-        return exp_x_a
-    elif 'adult' in prm.dataset.lower():
-        exp_x_a = exp_x_given_a[1:].mean()
-        if if_logger:
-            logger.info( "[SufGAP] The average sufficiency gap : {:.4f}".format(exp_x_a))
-        return exp_x_a
-    else:
-        exp_x_a = exp_x_given_a.mean()
-        if if_logger:
-            logger.info("[SufGAP] The average sufficiency gap : {:.4f}".format(exp_x_a))
-        return exp_x_a
+    exp_x_a = exp_x_given_a.mean()
+
+    return exp_x_a
 
 
-def equalized_odds(predictions, truth, sensitive_features):
+def standard_suf_gap_all_class_wise(y, y_hat, A, class_idx=1):
+    num_A = len(np.unique(A))
+    n_bins = 5
+    interpolate_kind = 'linear'
+
+    y_hat = softmax(y_hat, axis=1)  # normalize
+    y_hat = y_hat[:,class_idx]  # choose the specific column (class)
+
+    y_temp = copy.copy(y)
+    y_temp[np.where(y != class_idx)[0]] = 0  # make all the other classes as 0
+    y_temp[np.where(y == class_idx)[0]] = 1  # make the specific class as 1
+    y = y_temp
+
+    all_prob_true, all_prob_pred = calibration_curve(y, y_hat, n_bins=n_bins, pos_label=1)
+
+    if all_prob_true.shape[0] != n_bins:
+        logger.info('The range of prediction is not large enough for sufficiency gap computation, shrink the bins!')
+    n_bins = all_prob_true.shape[0]
+    groups_pred_true = np.zeros((num_A, n_bins))
+    groups_pred_prob = np.zeros((num_A, n_bins))
+
+    for i in range(len(np.unique(A))):
+        try:
+            t, p = calibration_curve(
+                y[A == np.unique(A)[i]], y_hat[A == np.unique(A)[i]], n_bins=n_bins)
+            if interpolate_kind:
+                new_x = all_prob_pred
+                f = interpolate.interp1d(
+                    p,
+                    t,
+                    bounds_error=False,
+                    fill_value=(t[0], t[-1]),
+                    kind=interpolate_kind,
+                )
+                t = f(new_x)
+                p = new_x
+            groups_pred_true[i] = t
+            groups_pred_prob[i] = p
+        except:
+            continue
+
+    exp_x_given_a = np.abs(all_prob_true - groups_pred_true).mean(axis=1)
+    exp_x_a = exp_x_given_a.mean()
+
+    return exp_x_a
+
+
+def standard_suf_gap_all_multiclass(y, y_hat, A,):
+    max_sg = 0
+    for y_i in np.unique(y):
+        current_sg = standard_suf_gap_all_class_wise(y, y_hat, A, class_idx=y_i)
+        if max_sg < current_sg:
+            max_sg = current_sg
+    return max_sg
+
+
+def equalized_odds_binary(y, y_hat, sensitive_features):
     # measure the difference between the true positive rates of different groups
-
-    predictions = predictions.argmax(1)
+    y_hat = y_hat.argmax(1)
 
     group_true_pos_r = []
     values_of_sensible_feature = np.unique(sensitive_features)
 
-    true_positive = np.sum([1.0 if predictions[i] == 1 and truth[i] == 1
-                             else 0.0 for i in range(len(predictions))])
-    all_positive = np.sum([1.0 if truth[i] == 1 else 0.0 for i in range(len(predictions))])
+    true_positive = np.sum([1.0 if y_hat[i] == 1 and y[i] == 1
+                             else 0.0 for i in range(len(y_hat))])
+    all_positive = np.sum([1.0 if y[i] == 1 else 0.0 for i in range(len(y_hat))])
     all_true_pos_r = true_positive / all_positive
 
     for val in values_of_sensible_feature:
-        positive_sensitive = np.sum([1.0 if sensitive_features[i] == val and truth[i] == 1 else 0.0
-                                     for i in range(len(predictions))])
+        positive_sensitive = np.sum([1.0 if sensitive_features[i] == val and y[i] == 1 else 0.0
+                                     for i in range(len(y_hat))])
         if positive_sensitive > 0:
-            true_positive_sensitive = np.sum([1.0 if predictions[i] == 1 and
-                        sensitive_features[i] == val and truth[i] == 1
-                         else 0.0 for i in range(len(predictions))])
+            true_positive_sensitive = np.sum([1.0 if y_hat[i] == 1 and
+                        sensitive_features[i] == val and y[i] == 1
+                         else 0.0 for i in range(len(y_hat))])
             eq_tmp = true_positive_sensitive / positive_sensitive  # true positive rate
             group_true_pos_r.append(eq_tmp)
 
     return np.mean(np.abs(all_true_pos_r - group_true_pos_r))
 
 
-def demographic_parity(predictions, sensitive_features, prm):
-    # measure the difference between the expectation of prediction between groups
+def equalized_odds_class_wise(y, y_hat, sensitive_features, class_idx=1):
+    # measure the difference between the true positive rates of different groups
+    y_hat = y_hat.argmax(1)
 
-    # if the output logits are all 0, replace them with 0.5 to prevent the divider contains 0
-    predictions[np.where(predictions.sum(1) == 0)[0]] = [0.5] * prm.output_dim
-    predictions = predictions / np.concatenate([[predictions.sum(1)], [predictions.sum(1)]]).T  # normalize
-    predictions = predictions[:, -1]
+    group_true_pos_r = []
+    values_of_sensible_feature = np.unique(sensitive_features)
 
-    all_eq = np.mean(predictions)
-    eq_sensible = []
+    true_positive = np.sum([1.0 if y_hat[i] == class_idx and y[i] == class_idx
+                             else 0.0 for i in range(len(y_hat))])
+    all_positive = np.sum([1.0 if y[i] == class_idx else 0.0 for i in range(len(y_hat))])
+    all_true_pos_r = true_positive / all_positive
+
+    for val in values_of_sensible_feature:
+        positive_sensitive = np.sum([1.0 if sensitive_features[i] == val and y[i] == class_idx else 0.0
+                                     for i in range(len(y_hat))])
+        if positive_sensitive > 0:
+            true_positive_sensitive = np.sum([1.0 if y_hat[i] == class_idx and
+                        sensitive_features[i] == val and y[i] == class_idx
+                         else 0.0 for i in range(len(y_hat))])
+            eo_tmp = true_positive_sensitive / positive_sensitive  # true positive rate
+            group_true_pos_r.append(eo_tmp)
+
+    return np.mean(np.abs(all_true_pos_r - group_true_pos_r))
+
+
+def equalized_odds_multiclass(y, y_hat, sensitive_features):
+    # get the maximum EO among all the classes
+    max_eo = 0
+    for y_i in np.unique(y):
+        current_eo = equalized_odds_class_wise(y, y_hat, sensitive_features, class_idx=y_i)
+        if max_eo < current_eo:
+            max_eo = current_eo
+    return max_eo
+
+
+def demographic_parity_multiclass(y_hat, sensitive_features):
+    # get the maximum DP among all the classes
+    y_hat = softmax(y_hat, axis=1)  # normalize
+    all_p = np.mean(y_hat, axis=0)  # the mean prediction for each class
+    p_sensible = []
     values_of_sensible_feature = np.unique(sensitive_features)
     for val in values_of_sensible_feature:
-        eq_sensible.append(predictions[np.where(sensitive_features == val)[0]].mean())
+        p_sensible.append(y_hat[np.where(sensitive_features == val)[0]].mean(axis=0))
 
-    return np.mean(np.abs(all_eq - eq_sensible))
+    return np.max(np.abs(all_p - p_sensible).mean(axis=0))
+
+
+def demographic_parity_binary(y_hat, sensitive_features):
+    # measure the difference between the expectation of prediction between groups
+    y_hat = y_hat.argmax(1)
+    group_pos_r = []
+    values_of_sensible_feature = np.unique(sensitive_features)
+
+    all_positive = np.sum([1.0 if y_hat[i] == 1
+                        else 0.0 for i in range(len(y_hat))])
+    all_pos_r = all_positive / len(y_hat)
+
+    for val in values_of_sensible_feature:
+        sensitive = np.sum([1.0 if sensitive_features[i] == val
+                            else 0.0 for i in range(len(y_hat))])
+        if sensitive > 0:
+            positive_sensitive = np.sum([1.0 if sensitive_features[i] == val and y_hat[i] == 1
+                                         else 0.0 for i in range(len(y_hat))])
+            eq_tmp = positive_sensitive / sensitive  #  positive rate
+            group_pos_r.append(eq_tmp)
+
+    return np.mean(np.abs(all_pos_r - group_pos_r))
 
 
 # all
-def result_show(y_test, predict, A_test, prm):
-    # logger.info("=============== Accuracy =============")
-    accuracy, b_acc = compute_accuracy(y_test, predict, prm.acc_bin, prm.output_dim)
-    # logger.info("=============== Demographic Parity =============")
-    DP_score = demographic_parity(predict, A_test, prm)
-    # logger.info("=============== Equalized Odds =============")
-    EO_score = equalized_odds(predict, y_test, A_test)
-    # logger.info("=============== Sufficient Gap =============")
-    suf_gap_avg_score = standard_suf_gap_all(predict, y_test, A_test, prm, if_logger=False)
+def result_show(y, y_hat, A_test, output_dim):
+    accuracy, b_acc, recall = compute_accuracy(y, y_hat, output_dim=output_dim)
+    if output_dim <= 2:  # binary class
+        DP_score = demographic_parity_binary(y_hat, A_test)
+        EO_score = equalized_odds_binary(y, y_hat, A_test)
+        suf_gap_avg_score = standard_suf_gap_all_binary(y, y_hat, A_test)
+    else: # multiple class
+        DP_score = demographic_parity_multiclass(y_hat, A_test)
+        EO_score = equalized_odds_multiclass(y, y_hat, A_test)
+        suf_gap_avg_score = standard_suf_gap_all_multiclass(y, y_hat, A_test)
+
+    for idx, rec in enumerate(recall):
+        logger.info("[Recall] The overall recall for class {}:    {:.4f}".format(idx, rec))
     logger.info("[Accuracy] The overall accuracy is:         {:.4f}".format(accuracy))
     logger.info("[Balanced Acc] The overall balanced acc is: {:.4f}".format(b_acc))
     logger.info("[DP] The overall demographic parity is:     {:.4f}".format(DP_score))
     logger.info("[EO] The overall equalized odds is:         {:.4f}".format(EO_score))
     logger.info("[SufGAP] The overall sufficiency gap is:    {:.4f}".format(suf_gap_avg_score))
 
-    return accuracy, b_acc, DP_score, EO_score, suf_gap_avg_score
+    return accuracy, b_acc, DP_score, EO_score, suf_gap_avg_score, recall
 
 
-def result_wandb(y_test, predict, A_test, prm):
-    accuracy, b_acc = compute_accuracy(y_test, predict, prm.acc_bin, prm.output_dim, if_logger=False)
-    #3 b_acc = balanced_accuracy_score(y_test, predict.argmax(1))
-    suf_gap_avg_score = standard_suf_gap_all(predict, y_test, A_test, prm, if_logger=False)
+def result_wandb(y, y_hat, A_test, output_dim=2):
+    accuracy, b_acc, recall = compute_accuracy(y, y_hat, output_dim=output_dim)
+    if output_dim <= 2:
+        suf_gap_avg_score = standard_suf_gap_all_binary(y, y_hat, A_test)
+    else:
+        suf_gap_avg_score = standard_suf_gap_all_multiclass(y, y_hat, A_test)
 
     wandb_dict = {
         "acc": accuracy,
         "b_acc": b_acc,
+        "recall": recall,
         "suf_gap_avg": suf_gap_avg_score,
     }
     return wandb_dict

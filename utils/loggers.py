@@ -92,7 +92,7 @@ def set_npy_new(prm):
         )
     )
     if prm.method in [7, 9]:  # method 7 and 9 only have one learning rate
-        npy_file_pre = f"Method_{prm.method}_{prm.model_name}_lr_{prm.lr}"
+        npy_file_pre = f"results_method_{prm.method}_{prm.model_name}_lr_{prm.lr}"
     else:
-        npy_file_pre = f"Method_{prm.method}_{prm.model_name}_lr_prior_{prm.lr_prior}_lr_post_{prm.lr_post}"
+        npy_file_pre = f"results_method_{prm.method}_{prm.model_name}_lr_prior_{prm.lr_prior}_lr_post_{prm.lr_post}_pi_{prm.pi}"
     return npy_dir, npy_file_pre

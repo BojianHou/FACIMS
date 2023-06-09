@@ -133,18 +133,96 @@ def load_data(prm):
         return preprocess_adult_data(seed=prm.seed)
     elif prm.dataset == "celeba":
         return load_celeba_features()
-    elif prm.dataset == 'tadpole':
-        return load_tadpole(prm.seed)
     elif prm.dataset == 'isic_m':
         return load_isic_m()
     elif prm.dataset == 'isic_s':
         return load_isic_s()
     elif prm.dataset == 'bank':
         return load_bank()
+
+    elif prm.dataset == 'tadpole':
+        return load_tadpole(prm.seed)
     elif prm.dataset == 'credit':
         return load_credit(prm.seed)
+    elif prm.dataset == 'drug':
+        return load_drug(prm.seed)
+    elif prm.dataset == 'toy_new':
+        return load_toy_new(prm.seed, prm.pi)
+
     else:
         raise ValueError("Invalid dataset:{}".format(prm.dataset))
+
+
+def load_drug(seed=42):
+    logger.info("Drug dataset Preprocessing ...")
+    data = pd.read_csv('./DATASOURCE/drug.csv')
+    group = data['education']
+    logger.info(f"Grouped Info:\n  {group.value_counts()}")
+    group = group.to_numpy()
+    X = data.drop(columns=['id', 'education', 'alcohol']).to_numpy()
+    X = StandardScaler().fit_transform(X)
+    y = data['alcohol'].to_numpy()
+
+    count_list_all = []
+    for p in np.unique(group):
+        count_list_all.append(len(np.where(group == p)[0]))
+    count_list_all = count_list_all / np.sum(count_list_all)
+
+    class_list = []
+    for c in np.unique(y):
+        idx_p = np.where(y == c)[0]
+        pgroup = group[idx_p]
+        count_list = []
+        for p in np.unique(pgroup):
+            count_list.append(len(np.where(pgroup == p)[0]))
+        count_list = count_list / np.sum(count_list)
+        class_list.append(count_list)
+
+    X_rem, X_test, y_rem, y_test, group_rem, group_test = \
+        train_test_split(X, y, group, test_size=0.3, random_state=42, stratify=y)
+    X_train, X_val, y_train, y_val, group_train, group_val = \
+        train_test_split(X_rem, y_rem, group_rem, test_size=0.3, random_state=42, stratify=y_rem)
+
+    return X_train, X_val, X_test, group_train, group_val, group_test, y_train, y_val, y_test
+
+
+def load_toy_new(seed=42, pi=2):
+    logger.info("Toy_new dataset preprocessing ... PI is {}".format(pi))
+    # pi = pi
+
+    n_samples_low = 200  # number of males
+    n_samples = pi * n_samples_low  # number of females
+    n_dimensions = 2
+
+    np.random.seed(0)
+    varA = 0.8
+    aveApos = [-1.0] * n_dimensions
+    aveAneg = [1.0] * n_dimensions
+    varB = 0.5
+    aveBpos = [0.5] * int(n_dimensions / 2) + [-0.5] * int(n_dimensions / 2 + n_dimensions % 2)
+    aveBneg = [0.5] * n_dimensions
+
+    X = np.random.multivariate_normal(aveApos, np.diag([varA] * n_dimensions), n_samples)
+    X = np.vstack([X, np.random.multivariate_normal(aveAneg, np.diag([varA] * n_dimensions), n_samples_low // 5)])
+    X = np.vstack([X, np.random.multivariate_normal(aveBpos, np.diag([varB] * n_dimensions), n_samples_low)])
+    X = np.vstack([X, np.random.multivariate_normal(aveBneg, np.diag([varB] * n_dimensions), n_samples // 5)])
+    group = [1] * (n_samples + n_samples_low // 5) + [0] * (n_samples_low + n_samples // 5)
+    group = np.array(group)
+    y = [1] * n_samples + [0] * (n_samples_low // 5) + [1] * n_samples_low + [0] * (n_samples // 5)
+    y = np.array(y)
+    # sensible_feature_id = len(X[1, :]) - 1
+    # idx_A = list(range(0, n_samples+n_samples_low))
+    # idx_B = list(range(n_samples+n_samples_low, n_samples*2+n_samples_low*2))
+
+    # X_train, X_test, y_train, y_test = \
+    #     train_test_split(X, y, test_size=0.3, random_state=seed, stratify=y)
+
+    X_rem, X_test, y_rem, y_test, group_rem, group_test = \
+        train_test_split(X, y, group, test_size=0.3, random_state=42, stratify=y)
+    X_train, X_val, y_train, y_val, group_train, group_val = \
+        train_test_split(X_rem, y_rem, group_rem, test_size=0.3, random_state=42, stratify=y_rem)
+
+    return X_train, X_val, X_test, group_train, group_val, group_test, y_train, y_val, y_test
 
 
 # ----------------------------------------------------------------------------------------------
@@ -159,6 +237,13 @@ def load_credit(seed):
     X = data.drop(columns=['ID', 'EDUCATION', 'default payment next month']).to_numpy()
     X = StandardScaler().fit_transform(X)
     y = data['default payment next month'].to_numpy()
+
+    # idx_p = np.where(y == 1)[0]
+    # pgroup = group[idx_p]
+    # count_list = []
+    # for p in np.unique(pgroup):
+    #     count_list.append(len(np.where(pgroup == p)[0]))
+    # count_list_new = count_list / np.sum(count_list)
 
     X_rem, X_test, y_rem, y_test, group_rem, group_test = \
         train_test_split(X, y, group, test_size=0.3, random_state=42, stratify=y)

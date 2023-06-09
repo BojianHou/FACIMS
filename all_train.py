@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import absolute_import, division#, logger.info_function
 
 import os.path as osp
@@ -28,6 +29,8 @@ except Exception as e:
 def main(prm):
     time_start = time.time()
     seed_setup(prm.seed)
+
+    print('PI is {}'.format(prm.pi))
     
     # log setting
     log_dir, log_file = set_logger(prm)
@@ -48,7 +51,7 @@ def main(prm):
     X_train, X_val, X_test, A_train, A_val, A_test, y_train, y_val, y_test = load_data(prm)
 
     # Data Decrease - mimic small data size situation on toxic dataset
-    if prm.dataset == "toxic" or prm.dataset == 'bank' or prm.dataset == 'credit':
+    if prm.dataset in ['toxic', 'bank', 'credit']:  # drug tadpole
         A_train_index = []
         for s in np.unique(A_train):
             A_train_index += np.random.choice(
@@ -73,11 +76,14 @@ def main(prm):
     prm.no_KL = False
     prm.no_indirect_grad = False
     prm.sharp_strategy = False
+    prm.no_val = False
 
     if prm.method == 1:  # FAMS
         pass
     elif prm.method == 2:  # FAMS with manual logits adjustment
         prm.manual_adjust = True
+        prm.is_bilevel = True
+        prm.no_val = True
     elif prm.method == 3:  # ours: FAMS with automatic logits adjustment
         prm.is_bilevel = True
     elif prm.method == 4:  # ours without KL in up level
@@ -99,6 +105,9 @@ def main(prm):
         prm.is_BERM = True
     elif prm.method == 10: # FAMS with sharp strategy
         prm.sharp_strategy = True
+    elif prm.method == 11:  # FAMS with indirect gradient
+        prm.is_bilevel = True
+        prm.no_val = True
 
     logger.info(prm)
     logger.info("data={}, method={}, lr_prior={}, lr_post={}, "
@@ -108,6 +117,9 @@ def main(prm):
 
     # train
     # train( prm, prior_model, loss_criterion, X_train, A_train, y_train, X_test, A_test, y_test)
+    if not os.path.exists('./models'):  # folder 'models' is to save the model parameters
+        os.makedirs('./models')
+
     model = train(prm,
           X_train, A_train, y_train,
           X_val, A_val, y_val,
@@ -115,9 +127,19 @@ def main(prm):
 
     # evaluation
     logger.info("=============== Inference Process =============")
-    if isinstance(model, tuple):  # model[0] is the prior model, model[1] is the post models
+    if isinstance(model, tuple):  # model[0] is the prior model, model[1] include all post models
         predict_prior = inference(model[0], X_test, prm)
-        acc, b_acc, dp, eo, sg = result_show(y_test, predict_prior, A_test, prm)
+        if prm.dataset == 'toy_new':
+            np.save('./npy/{}/prediction_method_{}_seed_{}_lr_prior_{}_lr_post_{}_pi_{}.npy'.
+                    format(prm.dataset, prm.method, prm.seed, prm.lr_prior, prm.lr_post, prm.pi),
+                    predict_prior)
+        else:
+            np.save('./npy/{}/prediction_method_{}_seed_{}_lr_prior_{}_lr_post_{}.npy'.
+                    format(prm.dataset, prm.method, prm.seed, prm.lr_prior, prm.lr_post),
+                    predict_prior)
+
+        acc, b_acc, dp, eo, sg, recall = result_show(y_test, predict_prior, A_test, prm.output_dim)
+
         group = np.unique(A_test)
         X_test_list = [X_test[np.where(A_test == g)[0]] for g in group]
         y_test_list = [y_test[np.where(A_test == g)[0]] for g in group]
@@ -127,7 +149,16 @@ def main(prm):
                          for idx, predict_post in enumerate(predict_post_list)]
     else:
         predict = inference(model, X_test, prm)
-        acc, b_acc, dp, eo, sg = result_show(y_test, predict, A_test, prm)
+        if prm.dataset == 'toy_new':
+            np.save('./npy/{}/prediction_method_{}_seed_{}_lr_{}_pi_{}.npy'.
+                    format(prm.dataset, prm.method, prm.seed, prm.lr, prm.pi),
+                    predict)
+        else:
+            np.save('./npy/{}/prediction_method_{}_seed_{}_lr_{}.npy'.
+                    format(prm.dataset, prm.method, prm.seed, prm.lr),
+                    predict)
+
+        acc, b_acc, dp, eo, sg, recall = result_show(y_test, predict, A_test, prm.output_dim)
 
     time_end = time.time()
     time_duration = time_end - time_start
@@ -137,9 +168,9 @@ def main(prm):
     logger.handlers.clear()
 
     if isinstance(model, tuple):
-        return (acc, b_acc, dp, eo, sg, bacc_list)
+        return (acc, b_acc, dp, eo, sg, recall, bacc_list)
     else:
-        return (acc, b_acc, dp, eo, sg)
+        return (acc, b_acc, dp, eo, sg, recall)
 
 
 if __name__ == "__main__":
@@ -149,12 +180,12 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------------------------------
     # BASIC param
     # ----------------------------------------------------------------------------------------------------
-    parser.add_argument("--config", type=str, help="config file", default='EXPS/credit_template.yml')
+    parser.add_argument("--config", type=str, help="config file", default='EXPS/toy_new_template.yml')
     # parser.add_argument("--method", type=str, help="method name", default="ours")
     # ----------------------------------------------------------------------------------------------------
     # Dataset
     # ----------------------------------------------------------------------------------------------------
-    parser.add_argument("--dataset", type=str, help="dataset name", default="tadpole")
+    parser.add_argument("--dataset", type=str, help="dataset name", default="toy_new")
     parser.add_argument("--sens_attrs", type=str, help="sub dataset name for toxic dataset", default="race")
     parser.add_argument("--N_subtask", type=int, help="subgroups number", default=7)
     # toxic kaggle
@@ -177,7 +208,7 @@ if __name__ == "__main__":
     parser.add_argument("--divergence_type", type=str, help="choose the divergence type 'KL' or 'W_Sqr'", default="W_Sqr")
     parser.add_argument("--kappa_prior", type=float, help="The STD of the 'noise' added to prior while using KL", default=0.01)
     parser.add_argument("--kappa_post", type=float, help="The STD of the 'noise' added to post while using KL", default=1e-3)
-    parser.add_argument("--lambda_low", type=float, help="trade-off parameter in lower level", default=0.1)
+    parser.add_argument("--lambda_low", type=float, help="trade-off parameter in lower level", default=0.7)
     parser.add_argument("--lambda_up", type=float, help="trade-off parameter in upper level", default=0.7)
     # ----------------------------------------------------------------------------------------------------
     # Stochastic
@@ -203,20 +234,27 @@ if __name__ == "__main__":
     parser.add_argument("--is_bilevel", type=bool, help="whether use bilevel", default=False)
     parser.add_argument("--manual_adjust", type=bool, help="whether manually adjust label", default=False)
     parser.add_argument("--sharp_strategy", type=bool, help="whether use sharp strategy", default=False)
-    parser.add_argument("--rho", type=float,help="hyper parameter for sharp strategy",default=0.05)
+    parser.add_argument("--rho", type=float, help="hyper parameter for sharp strategy",default=0.05)
     parser.add_argument(
         "--method", type=int,
         help="1: FAMS, 2: FAMS+manual logits adjustment"
-             "3: Ours, 4: Ours without KL in up level"
+             "3: Ours, 8: Ours plus sharp strategy (final ours)"
+             
+             "4: Ours without KL in upper level"
              "5: Ours without indirect grad for global f"
-             "6: Ours without KL in up level-indirect grad for global f"
-             "7: trivial ERM, 8: Ours with sharp strategy"
-             "9: balanced ERM, 10: FAMS with sharp strategy",
-        default=8
+             "6: Ours without KL in upper level-indirect grad for global f"
+             
+             "7: trivial ERM, 9: balanced ERM, "
+             
+             "10: FAMS plus sharp strategy, "
+             "11: FAMS with indirect gradient",
+        default=9
     )
+    parser.add_argument('--pi', type=int, help='the ratio between two groups', default=2)
+    parser.add_argument('--output_dim', type=int, help='the dimension of output', default=2)
 
     args = parser.parse_args()
-    torch.cuda.set_device(args.cuda_device)  # set cuda device
+    # torch.cuda.set_device(args.cuda_device)  # set cuda device
     # ----------------------------------------------------------------------------------------------------
     # config file update
     # ----------------------------------------------------------------------------------------------------
@@ -230,37 +268,42 @@ if __name__ == "__main__":
     time_start = time.time()
     logger = logging.getLogger("fair")
 
-    acc_list, b_acc_list, dp_list, eo_list, sg_list = [], [], [], [], []
+    acc_list, b_acc_list, dp_list, eo_list, sg_list, recall_list = [], [], [], [], [], []
     b_acc_post_list = []
     seed_list = [0, 42, 666, 777, 1009]   # 42, 666, 777, 1009
     for seed in seed_list:
         logger.info('==============================seed {}=================================='.format(seed))
         args.seed = seed
         result = main(args)
-        if len(result) == 5:
-            acc, b_acc, dp, eo, sg = result
+        if len(result) == 6:
+            acc, b_acc, dp, eo, sg, recall = result
         else:
-            acc, b_acc, dp, eo, sg, b_acc_post = result
+            acc, b_acc, dp, eo, sg, recall, b_acc_post = result
             b_acc_post_list.append(b_acc_post)
         acc_list.append(acc)
         b_acc_list.append(b_acc)
         dp_list.append(dp)
         eo_list.append(eo)
         sg_list.append(sg)
+        recall_list.append(recall)
 
     logger.info('===========================All Results===========================')
-    logger.info('ACC  Mean±Std {:.4f}±{:.4f}'.format(np.mean(acc_list), np.std(acc_list)))
-    logger.info('BACC Mean±Std {:.4f}±{:.4f}'.format(np.mean(b_acc_list), np.std(b_acc_list)))
-    logger.info('DP   Mean±Std {:.4f}±{:.4f}'.format(np.mean(dp_list), np.std(dp_list)))
-    logger.info('EO   Mean±Std {:.4f}±{:.4f}'.format(np.mean(eo_list), np.std(eo_list)))
-    logger.info('SG   Mean±Std {:.4f}±{:.4f}'.format(np.mean(sg_list), np.std(sg_list)))
+
+    for i in range(args.output_dim):
+        logger.info('Recall {}  Mean±Std {:.4f}±{:.4f}'.format(i, np.mean(np.array(recall_list)[:, i]), np.std(np.array(recall_list)[:, i])))
+    logger.info('ACC       Mean±Std {:.4f}±{:.4f}'.format(np.mean(acc_list), np.std(acc_list)))
+    logger.info('BACC      Mean±Std {:.4f}±{:.4f}'.format(np.mean(b_acc_list), np.std(b_acc_list)))
+
+    logger.info('DP        Mean±Std {:.4f}±{:.4f}'.format(np.mean(dp_list), np.std(dp_list)))
+    logger.info('EO        Mean±Std {:.4f}±{:.4f}'.format(np.mean(eo_list), np.std(eo_list)))
+    logger.info('SG        Mean±Std {:.4f}±{:.4f}'.format(np.mean(sg_list), np.std(sg_list)))
+
     if len(b_acc_post_list) > 0:
         b_acc_post_list = np.array(b_acc_post_list)
         mean_list = np.mean(b_acc_post_list, axis=0)
         std_list = np.std(b_acc_post_list, axis=0)
         for idx, mean in enumerate(mean_list):
-            logger.info('BACC of post model {} Mean±Std {:.4f}±{:.4f}'
-                        .format(idx, mean, std_list[idx]))
+            logger.info('BACC of post model {} Mean±Std {:.4f}±{:.4f}'.format(idx, mean, std_list[idx]))
 
     # save result
     npy_dir, npy_file_pre = set_npy_new(args)
@@ -273,6 +316,7 @@ if __name__ == "__main__":
     result['dp_list'] = [float(item) for item in dp_list]
     result['eo_list'] = eo_list
     result['sg_list'] = sg_list
+    result['recall_list'] = list(recall_list)
     result['b_acc_post_list'] = [list(item) for item in list(b_acc_post_list)]
     with open(osp.join(npy_dir, npy_file_pre + ".json"), 'w') as file:
         json.dump(result, file)

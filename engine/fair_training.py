@@ -23,7 +23,8 @@ from utils.common import get_init_dy, get_init_ly, get_train_w, get_val_w
 from utils.common import gather_flat_grad, neumann_hyperstep_preconditioner
 from utils.common import get_trainable_hyper_params, assign_gradient
 from utils.common import model_activate, model_freeze
-from utils.postprocessing import demographic_parity, equalized_odds, standard_suf_gap_all
+from utils.postprocessing import demographic_parity_binary, equalized_odds_binary, standard_suf_gap_all_binary
+from utils.postprocessing import demographic_parity_multiclass, equalized_odds_multiclass, standard_suf_gap_all_multiclass
 from utils.common import cross_entropy, loss_adjust_cross_entropy
 from utils.common import loss_adjust_cross_entropy_manual
 from utils.sharp_strategy import SAM
@@ -289,6 +290,8 @@ def update_meta_prior(list_of_post_model,
             val_loss = val_loss / len(val_loader)
             if prm.no_KL:
                 up_loss = val_loss
+            elif prm.no_val:
+                up_loss = complexity
             else:
                 up_loss = prm.lambda_up * val_loss + (1-prm.lambda_up) * complexity
 
@@ -300,6 +303,9 @@ def update_meta_prior(list_of_post_model,
             # list_d_L_up_d_post = [d_L_up_d_post / len(val_loader)
             #                       for d_L_up_d_post in list_d_L_up_d_post]
 
+            # *important*
+            # preconditioner is the multiplication of the mean of d_L_up_d_post
+            # and the inverse of the square of the d_L_low_d_post
             preconditioner = neumann_hyperstep_preconditioner(
                 torch.mean(torch.stack(list_d_L_up_d_post), dim=0),
                 list_d_L_low_d_post, 0.1, 10,
@@ -321,29 +327,31 @@ def update_meta_prior(list_of_post_model,
 
                 prior_grad = prm.lambda_up * d_L_up_d_prior - (1 - prm.lambda_up) * indirect_grad_prior
 
-            # we have two hyperparameters, ly and dy,
-            # each of which has the dimension of output_dim
-            indirect_grad_hyper = torch.zeros(2 * prm.output_dim, device=prm.device)
-            for d_L_low_d_post in list_d_L_low_d_post:
-                optimizer_hyper.zero_grad()
-                indirect_grad_hyper += gather_flat_grad(
-                    grad(d_L_low_d_post,
-                         get_trainable_hyper_params(up_params),
-                         grad_outputs=preconditioner.view(-1),
-                         # retain_graph=True,
-                         create_graph=True,
-                         allow_unused=True))
+            if not prm.no_val:  # no val means no need to tune the hyperparameters
+                # we have two hyperparameters, ly and dy,
+                # each of which has the dimension of output_dim
+                indirect_grad_hyper = torch.zeros(2 * prm.output_dim, device=prm.device)
+                for d_L_low_d_post in list_d_L_low_d_post:
+                    optimizer_hyper.zero_grad()
+                    indirect_grad_hyper += gather_flat_grad(
+                        grad(d_L_low_d_post,
+                             get_trainable_hyper_params(up_params),
+                             grad_outputs=preconditioner.view(-1),
+                             # retain_graph=True,
+                             create_graph=True,
+                             allow_unused=True))
 
-            hyper_grad = -indirect_grad_hyper
+                hyper_grad = -indirect_grad_hyper
+
+                optimizer_hyper.zero_grad()
+                assign_gradient(up_params, hyper_grad, prm.num_classes)
+                optimizer_hyper.step()
 
             # complexity.backward()
             optimizer_prior.zero_grad()
             assign_gradient(prior_model.parameters(), prior_grad, prm.num_classes)
             optimizer_prior.step()
 
-            optimizer_hyper.zero_grad()
-            assign_gradient(up_params, hyper_grad, prm.num_classes)
-            optimizer_hyper.step()
 
         if _ + 1 == prm.max_outer:
         # if (_ + 1) % 1 == 0:
@@ -492,11 +500,11 @@ def train_ours(prm,
 
     # initial test
     predict = inference(prior_model, X_test, prm)
-    accuracy, b_acc = compute_accuracy(y_test, predict, 0.5, prm.output_dim)
+    accuracy, b_acc, recall = compute_accuracy(y_test, predict, 0.5, prm.output_dim)
     logger.info("The initial overall accuracy is:          {:.4f}".format(accuracy))
     logger.info("The initial overall balanced accuracy is: {:.4f}".format(b_acc))
     if prm.use_wandb:
-        wandb_dict = result_wandb(y_test, predict, A_test, prm)
+        wandb_dict = result_wandb(y_test, predict, A_test, prm.output_dim)
         wandb.log(wandb_dict)
 
     # optimizer for prior model
@@ -600,10 +608,10 @@ def train_ours(prm,
 
             predict = inference(prior_model, X_test, prm)
 
-            result_show_in_epoch(y_test, predict, A_test, prm, epoch_id)
+            result_show_in_epoch(y_test, predict, A_test, prm.output_dim, epoch_id)
 
             if prm.use_wandb:
-                wandb_dict = result_wandb(y_test, predict, A_test, prm)
+                wandb_dict = result_wandb(y_test, predict, A_test, prm.output_dim)
                 wandb.log(wandb_dict, commit=False)
 
             # if epoch_id == int(prm.training_epoch / 2):
@@ -655,7 +663,7 @@ def train_ERM(prm,
                 )
             )
             predict = inference(model_erm, X_test, prm)
-            result_show_in_epoch(y_test, predict, A_test, prm, epoch_id)
+            result_show_in_epoch(y_test, predict, A_test, prm.output_dim, epoch_id)
 
     return model_erm
 
@@ -701,7 +709,7 @@ def train_BERM(prm,
                 )
             )
             predict = inference(model_berm, X_test, prm)
-            result_show_in_epoch(y_test, predict, A_test, prm, epoch_id)
+            result_show_in_epoch(y_test, predict, A_test, prm.output_dim, epoch_id)
 
     return model_berm
 
@@ -732,16 +740,28 @@ def train(prm,
                    X_train, A_train, y_train,
                    X_val, A_val, y_val,  # added by Bojian
                    X_test, A_test, y_test)
+        # save model
+        torch.save(model.state_dict(),
+                   './models/data_{}_method_{}_seed_{}_lr_{}'.
+                   format(prm.dataset, prm.method, prm.seed, prm.lr))
     elif prm.is_BERM:
         model = train_BERM(prm,
                   X_train, A_train, y_train,
                   X_val, A_val, y_val,  # added by Bojian
                   X_test, A_test, y_test)
+        # save model
+        torch.save(model.state_dict(),
+                   './models/data_{}_method_{}_seed_{}_lr_{}'.
+                   format(prm.dataset, prm.method, prm.seed, prm.lr))
     else:
         model = train_ours(prm,
                    X_train, A_train, y_train,
                    X_val, A_val, y_val,  # added by Bojian
                    X_test, A_test, y_test)
+        # save model
+        torch.save(model[0].state_dict(),
+                   './models/data_{}_method_{}_seed_{}_lr_prior_{}_lr_post_{}'.
+                   format(prm.dataset, prm.method, prm.seed, prm.lr_prior, prm.lr_post))
 
     if prm.use_wandb:
         wandb.finish()
@@ -779,12 +799,20 @@ def inference(model, inputs, prm, n_Mc=5):
     return result
 
 
-def result_show_in_epoch(y_test, predict, A_test, prm, epoch_id):
-    accuracy, b_acc = compute_accuracy(y_test, predict, 0.5, prm.output_dim)
-    DP_score = demographic_parity(predict, A_test, prm)
-    EO_score = equalized_odds(predict, y_test, A_test)
-    suf_gap_avg_score = standard_suf_gap_all(predict, y_test, A_test, prm)
+def result_show_in_epoch(y, y_hat, A_test, output_dim, epoch_id):
+    accuracy, b_acc, recall = compute_accuracy(y, y_hat, 0.5, output_dim)
 
+    if output_dim <= 2:
+        DP_score = demographic_parity_binary(y_hat, A_test)
+        EO_score = equalized_odds_binary(y, y_hat, A_test)
+        suf_gap_avg_score = standard_suf_gap_all_binary(y, y_hat, A_test)
+    else:
+        DP_score = demographic_parity_multiclass(y_hat, A_test)
+        EO_score = equalized_odds_multiclass(y, y_hat, A_test)
+        suf_gap_avg_score = standard_suf_gap_all_multiclass(y, y_hat, A_test)
+
+    for idx, rec in enumerate(recall):
+        logger.info("The recall of EPOCH [{}] for class {}:          {:.4f}".format(epoch_id + 1, idx, rec))
     logger.info("The accuracy of EPOCH [{}] is:                 {:.4f}".format(epoch_id + 1, accuracy))
     logger.info("The balanced acc of EPOCH [{}] is:             {:.4f}".format(epoch_id + 1, b_acc))
     logger.info("The demographic parity score of EPOCH [{}] is: {:.4f}".format(epoch_id + 1, DP_score))

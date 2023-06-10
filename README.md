@@ -61,7 +61,7 @@ pip install -r requirements.txt
 This work was supported in part by the NIH grants U01 AG066833, RF1 AG063481, U01 AG068057, R01 LM013463 P30 AG073105, and U01 CA274576, and the NSF grant IIS 1837964. Data used in this study were obtained from the Alzheimer's Disease Neuroimaging Initiative database (\url{adni.loni.usc.edu}), which was funded by NIH U01 AG024904. The authors Davoud Ataee Tarzanagh, Bojian Hou and Boning Tong  have contributed equally to this paper.
 
 
-### 📭 Maintainer
+### 📭 Maintainers
 
 [Bojian Hou](http://bojianhou.com) 
 - ([bojian.hou@pennmedicine.upenn.edu](mailto:bojian.hou@pennmedicine.upenn.edu))

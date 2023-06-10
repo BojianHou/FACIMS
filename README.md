@@ -8,11 +8,11 @@ We propose a novel Bayesian-based optimization framework designed to tackle the 
 
 ### 💡 Method
 ![FACIMS Illustration](FACIMS-illustration.png)
-In this figure, $f^a$ and $f^b$ maximize the margin for minority classes for groups $a$ and $b$. In the upper level problem FACIMS finds $\mathbf{Z}\in\mathcal{Z}$ to achieve a small balanced accuracy while minimizing the discrepancy between $(\mathbf{Z}^{a,\star},\mathbf{Z}^{b,\star})$. The approximation term $\text{KL}(\mathbf{Z}^{a,\star}| \mathbf{Z})$ is based on the distribution family $\mathcal{Z}$ (orange region). If the predefined $\mathcal{Z}$ has good expressive power, the approximation is treated as a small constant.
+This figure illusrates the mechanism of our framework. In this figure, $f^a$ and $f^b$ maximize the margin for minority classes for groups $a$ and $b$. In the upper level problem FACIMS finds $\mathbf{Z}\in\mathcal{Z}$ to achieve a small balanced accuracy while minimizing the discrepancy between $(\mathbf{Z}^{a,\star},\mathbf{Z}^{b,\star})$. The approximation term $\text{KL}(\mathbf{Z}^{a,\star}| \mathbf{Z})$ is based on the distribution family $\mathcal{Z}$ (orange region). If the predefined $\mathcal{Z}$ has good expressive power, the approximation is treated as a small constant.
 
-Our objective is as follows:
+Our objective is specified as follows:
 ![FACIMS formulation](FACIMS.jpg)
-The objective is a three-level optimization framework. In the upper level, we update the global distribution $Z$ and hyperparameter $v$ by minimizing the KL divergence between global distribution $Z$ and local distribution $Z^a$ for each group and the balanced cross entropy loss with respect to the model sampled from the global distribution. In the middle level, for the lower level
+
 
 ### 🗄️ Data
 In our paper, we use three real-world datasets listed as follows. We only provide the data 

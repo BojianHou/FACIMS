@@ -38,15 +38,15 @@ pip install -r requirements.txt
    1. Use config file in `./EXPS` to train your model.
 
         ```cmd
-        python all_train.py -config EXPS/amazon_template.yml
+        python all_train.py -config EXPS/credit_template.yml
         ```
 
-        We have provided our template configs on *Tadpole* and *Credit* datasets.
+        We have provided our template configs on *credit card* and *drug consumption* datasets.
 
    2. Directly passing the changeable parameters to the training script as:
 
         ```cmd
-        python all_train.py --method ours --dataset amazon --N_subtask 10
+        python all_train.py --method ours --dataset credit --N_subtask 10
         ```
 
     Note: The config file has higher priority than the direct passed params.

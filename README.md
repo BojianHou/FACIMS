@@ -7,7 +7,7 @@ Learning on Multiple Subgroups]() (Accepted by [UAI 2023](https://www.auai.org/u
 We propose a novel Bayesian-based optimization framework designed to tackle the challenge of generalization in overparameterized models with imbalanced subgroups and limited samples. Our proposed tri-level optimization framework leverages both local (subgroup-specific) predictors, trained on a small amount of data, and a fair and class-balanced predictor at the middle and lower levels. To effectively overcome saddle points for minority classes, our lower-level formulation incorporates sharpness-aware minimization. At the upper level, the framework dynamically adjusts the loss function based on validation loss, ensuring close alignment between the global predictor and local predictors. Theoretical analysis demonstrates the framework's ability to enhance classification and fairness generalization, potentially leading to improvements in the generalization bound. Empirical results validate the superior performance of our tri-level framework compared to existing state-of-the-art approaches.
 
 ### 💡 Method
-![FACIMS Illustration](FACIMS-illustration.png)
+![FACIMS Illustration](FACIMS_illustration.png)
 This figure illusrates the mechanism of our framework. In this figure, $f^a$ and $f^b$ maximize the margin for minority classes for groups $a$ and $b$. In the upper level problem FACIMS finds $\mathbf{Z}\in\mathcal{Z}$ to achieve a small balanced accuracy while minimizing the discrepancy between $(\mathbf{Z}^{a,\star},\mathbf{Z}^{b,\star})$. The approximation term $\text{KL}(\mathbf{Z}^{a,\star}| \mathbf{Z})$ is based on the distribution family $\mathcal{Z}$ (orange region). If the predefined $\mathcal{Z}$ has good expressive power, the approximation is treated as a small constant.
 
 Our objective is specified as follows:
@@ -70,11 +70,13 @@ This work was supported in part by the NIH grants U01 AG066833, RF1 AG063481, U0
 ### 📚 Citation
 
 ```
-@inproceedings{DB2023,
-  title={Fairness-Aware Class Imbalanced Learning on Multiple Subgroups},
-  author={Davoud Ataee Tarzanagh, Bojian Hou, Boning Tong, Qi Long, Li Shen},
-  booktitle={The Conference on Uncertainty in Artificial Intelligence (UAI)},
+@inproceedings{TH2023fairness,
+  title={Fairness-aware class imbalanced learning on multiple subgroups},
+  author={Tarzanagh, Davoud Ataee and Hou, Bojian and Tong, Boning and Long, Qi and Shen, Li},
+  booktitle={Uncertainty in Artificial Intelligence},
+  pages={2123--2133},
   year={2023},
+  organization={PMLR}
 }
 ```
 
